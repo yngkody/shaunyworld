@@ -1,0 +1,184 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SHAUNY Fan Map</title>
+  <!-- Leaflet CDN -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  />
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""
+  ></script>
+  <style>
+    :root{
+      --bg:#0f0f16;
+      --panel:#151526;
+      --ink:#e9e7ff;
+      --muted:#a6a3c9;
+      --accent:#a86cff;     /* unicorn lilac */
+      --accent2:#50e3ff;    /* neon aqua */
+      --accent3:#ff8bd4;    /* candy pink */
+      --ring: 0 0 35px rgba(168,108,255,.35);
+    }
+    html,body,#app{ height:100%; margin:0; background:var(--bg); color:var(--ink); font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";}
+    #map{ height:100%; width:100%; filter: drop-shadow(0 20px 40px rgba(0,0,0,.35)); }
+    .panel{
+      position:fixed; top:14px; left:14px; z-index:9999;
+      background:linear-gradient(180deg, rgba(80,227,255,.08), rgba(168,108,255,.08));
+      backdrop-filter: blur(8px);
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:16px; padding:12px 14px;
+      box-shadow: var(--ring);
+    }
+    .title{ font-weight:700; letter-spacing:.4px; font-size:14px; margin-bottom:8px}
+    .toggle{ display:flex; gap:8px }
+    .btn{
+      display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border-radius:999px;
+      background:rgba(255,255,255,.06); color:var(--ink); border:1px solid rgba(255,255,255,.14);
+      cursor:pointer; user-select:none; font-size:12px; letter-spacing:.3px;
+    }
+    .btn.active{ background:linear-gradient(90deg, rgba(168,108,255,.35), rgba(80,227,255,.35)); }
+    .legend{
+      position:fixed; right:14px; bottom:14px; z-index:9999;
+      background:var(--panel); border:1px solid rgba(255,255,255,.12); border-radius:14px; padding:10px 12px; color:var(--muted);
+      box-shadow: var(--ring);
+      max-width: 260px;
+    }
+    .legend h4{ margin:0 0 6px 0; color:var(--ink); font-size:13px; }
+    .legend .row{ display:flex; align-items:center; gap:8px; margin:4px 0; }
+    .dot{ width:10px; height:10px; border-radius:999px; background:var(--accent); box-shadow:0 0 0 3px rgba(168,108,255,.25), 0 0 14px rgba(168,108,255,.45); }
+    .dot.aqua{ background:var(--accent2); box-shadow:0 0 0 3px rgba(80,227,255,.25), 0 0 14px rgba(80,227,255,.45); }
+    .leaflet-popup-content-wrapper{ background:var(--panel); color:var(--ink); border-radius:12px; border:1px solid rgba(255,255,255,.12) }
+    .leaflet-popup-tip{ background:var(--panel); }
+    .watermark{ position:fixed; right:16px; top:14px; font-size:12px; color:var(--muted); opacity:.8 }
+    a{ color:var(--accent2); }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div id="map"></div>
+    <div class="panel">
+      <div class="title">SHAUNY • Global Audience</div>
+      <div class="toggle">
+        <div class="btn active" id="btnCountries">Countries</div>
+        <div class="btn" id="btnCities">Cities</div>
+      </div>
+    </div>
+    <div class="legend">
+      <h4>Bubble size = stream count</h4>
+      <div class="row"><span class="dot"></span> Countries (all‑time)</div>
+      <div class="row"><span class="dot aqua"></span> Cities (all‑time)</div>
+      <div style="margin-top:6px">Source: Spotify, Apple Music, YouTube (as of Aug 2025)</div>
+    </div>
+    <div class="watermark">shauny.world</div>
+  </div>
+
+  <script>
+    // ---------- Data (seeded from screenshots) ----------
+    const COUNTRIES = [
+      { name: "United States", streams: 165674, coords: [37.0902, -95.7129] },
+      { name: "Finland", streams: 55130, coords: [64.0, 26.0] },
+      { name: "India", streams: 52048, coords: [22.9734, 78.6569] },
+      { name: "Cambodia", streams: 16128, coords: [12.5657, 104.9910] },
+      { name: "Indonesia", streams: 13315, coords: [-2.5489, 118.0149] },
+      { name: "Bangladesh", streams: 12836, coords: [23.6850, 90.3563] },
+      { name: "Nepal", streams: 11955, coords: [28.3949, 84.1240] },
+      { name: "Philippines", streams: 11055, coords: [12.8797, 121.7740] },
+      { name: "United Kingdom", streams: 7849, coords: [55.3781, -3.4360] },
+      { name: "Sri Lanka", streams: 7162, coords: [7.8731, 80.7718] },
+    ];
+
+    const CITIES = [
+      { city: "New York, NY", streams: 79540, coords: [40.7580, -73.9855] },
+      { city: "Los Angeles, CA", streams: 3789, coords: [34.0522, -118.2437] },
+      { city: "Atlanta, GA", streams: 2376, coords: [33.7490, -84.3880] },
+      { city: "Washington, DC", streams: 2323, coords: [38.9072, -77.0369] },
+      { city: "Chicago, IL", streams: 2146, coords: [41.8781, -87.6298] },
+      { city: "Bay Area, CA", streams: 2125, coords: [37.7749, -122.4194] },
+      { city: "Philadelphia, PA", streams: 1880, coords: [39.9526, -75.1652] },
+      { city: "Dallas–Ft. Worth, TX", streams: 1294, coords: [32.7767, -96.7970] },
+      { city: "Houston, TX", streams: 1191, coords: [29.7604, -95.3698] },
+      { city: "Seattle, WA", streams: 968, coords: [47.6062, -122.3321] },
+    ];
+
+    // ---------- Map ----------
+    const map = L.map('map', {
+      zoomControl: false,
+      minZoom: 2,
+      maxZoom: 6,
+      worldCopyJump: true
+    }).setView([20, 10], 2);
+
+    // Carto Positron tiles (no key)
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; OpenStreetMap & Carto',
+      maxZoom: 6
+    }).addTo(map);
+
+    L.control.zoom({ position: 'bottomleft' }).addTo(map);
+
+    // ---------- Utilities ----------
+    function radiusFor(value, scale = 0.04) {
+      // sqrt scale so big numbers don't dominate; tweak 'scale' to taste.
+      return Math.sqrt(value) * scale;
+    }
+
+    function countryCircle(d) {
+      return L.circleMarker([d.coords[0], d.coords[1]], {
+        radius: radiusFor(d.streams, 0.05),
+        color: 'rgba(168,108,255,0.9)',
+        fillColor: 'rgba(168,108,255,0.45)',
+        fillOpacity: 0.6,
+        weight: 2
+      }).bindPopup(`<b>${d.name}</b><br/>${d.streams.toLocaleString()} streams`);
+    }
+
+    function cityCircle(d) {
+      return L.circleMarker([d.coords[0], d.coords[1]], {
+        radius: radiusFor(d.streams, 0.12),
+        color: 'rgba(80,227,255,0.95)',
+        fillColor: 'rgba(80,227,255,0.45)',
+        fillOpacity: 0.7,
+        weight: 2
+      }).bindPopup(`<b>${d.city}</b><br/>${d.streams.toLocaleString()} streams`);
+    }
+
+    let countryLayer = L.layerGroup(COUNTRIES.map(countryCircle)).addTo(map);
+    let cityLayer = L.layerGroup();
+
+    // ---------- Toggle ----------
+    const btnCountries = document.getElementById('btnCountries');
+    const btnCities = document.getElementById('btnCities');
+
+    function showCountries(){
+      map.addLayer(countryLayer);
+      map.removeLayer(cityLayer);
+      btnCountries.classList.add('active');
+      btnCities.classList.remove('active');
+    }
+    function showCities(){
+      if (!map.hasLayer(cityLayer)) {
+        cityLayer = L.layerGroup(CITIES.map(cityCircle)).addTo(map);
+      }
+      map.addLayer(cityLayer);
+      map.removeLayer(countryLayer);
+      btnCities.classList.add('active');
+      btnCountries.classList.remove('active');
+    }
+    btnCountries.addEventListener('click', showCountries);
+    btnCities.addEventListener('click', showCities);
+
+    // Fit bounds to data
+    const allLatLngs = COUNTRIES.map(d => [d.coords[0], d.coords[1]]).concat(CITIES.map(d => [d.coords[0], d.coords[1]]));
+    map.fitBounds(allLatLngs, { padding: [40,40] });
+  </script>
+</body>
+</html>
