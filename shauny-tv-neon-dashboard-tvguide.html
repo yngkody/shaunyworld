@@ -1,0 +1,163 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>SHAUNY • Neon TV Dashboard</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="anonymous"></script>
+<style>
+:root{--bg:#0b0b12;--panel:#151526;--ink:#f2f1ff;--muted:#a6a3c9;--line:rgba(255,255,255,.12);--lilac:#a86cff;--aqua:#50e3ff;--pink:#ff8bd4;}
+*{box-sizing:border-box} html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);font-family:ui-sans-serif,system-ui,Inter,Segoe UI,Roboto,Arial}
+.tv-wrap{display:grid;place-items:center;height:100vh;padding:24px}
+.tv{position:relative;width:min(1100px,92vw);aspect-ratio:16/9;background:linear-gradient(145deg,#2a2a3c,#191923);border:12px solid #0a0a12;border-radius:24px;box-shadow:0 50px 120px rgba(0,0,0,.55),inset 0 0 0 2px rgba(255,255,255,.08);overflow:visible}
+.screen{position:absolute;inset:22px 280px 22px 22px;background:#0f0f16;border-radius:18px;overflow:hidden;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08),0 15px 40px rgba(0,0,0,.5)}
+.screen::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(to bottom,rgba(255,255,255,.05) 0 1px,transparent 1px 3px);mix-blend-mode:overlay;pointer-events:none;opacity:.2}
+.vignette{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 60%,rgba(0,0,0,.55) 100%)}
+.side{position:absolute;top:22px;right:22px;bottom:22px;width:240px;background:linear-gradient(180deg,#1f1f2c,#141423);border-radius:16px;border:1px solid var(--line);padding:14px;display:grid;grid-template-rows:auto auto 1fr auto;gap:12px}
+.logo{font-weight:800;letter-spacing:.12em;font-size:14px;opacity:.9}
+.readout{background:#0e0e18;border:1px solid var(--line);border-radius:10px;padding:10px;font-family:monospace;font-size:13px;color:#c7c5ff}
+.guide{background:#0e0e18;border:1px solid var(--line);border-radius:10px;padding:12px}
+.guide h4{margin:0 0 6px 0; font-size:13px; letter-spacing:.2px}
+.guide p{margin:0; color:#cfcdf7; font-size:12px; line-height:1.35}
+.dial{height:140px;width:140px;border-radius:50%;margin:8px auto;background:radial-gradient(circle at 30% 30%,#3a3955,#1c1b2e);border:6px solid #0f0f16;position:relative;box-shadow:inset 0 0 30px rgba(0,0,0,.6),0 8px 18px rgba(0,0,0,.4)}
+.dial .knob{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(var(--rot,0deg));width:110px;height:110px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#5a5880,#23213a);border:2px solid rgba(255,255,255,.08)}
+.tick{position:absolute;left:50%;top:8px;transform:translateX(-50%);width:4px;height:16px;border-radius:2px;background:#cfd2ff;box-shadow:0 0 12px rgba(168,108,255,.6)}
+.dial-btns{display:flex;gap:10px;justify-content:center} .btn{background:linear-gradient(180deg,rgba(168,108,255,.25),rgba(80,227,255,.18));border:1px solid var(--line);border-radius:999px;padding:8px 12px;color:var(--ink);font-size:12px;cursor:pointer}
+.channel{position:absolute;inset:0;display:none;padding:14px} .channel.active{display:block}
+#map{position:absolute;inset:0}
+.neon-dot{--c:#a86cff;width:16px;height:16px;display:block;border-radius:50%;background:var(--c);border:2px solid rgba(255,255,255,.9);box-shadow:0 0 10px var(--c),0 0 24px var(--c),0 0 40px var(--c)}
+.leaflet-div-icon{background:transparent;border:none}
+.leaflet-popup-content-wrapper{background:var(--panel);color:var(--ink);border-radius:12px;border:1px solid var(--line)}
+.leaflet-popup-tip{background:var(--panel)}
+.wrap-inset{padding:14px;display:grid;gap:12px}
+.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+.kpi{background:linear-gradient(180deg,rgba(168,108,255,.08),rgba(80,227,255,.08));border:1px solid var(--line);border-radius:12px;padding:10px}
+.kpi-label{font-size:11px;color:var(--muted)} .kpi-value{font-size:18px;font-weight:800}
+@media (max-width:900px){.kpis{grid-template-columns:repeat(2,1fr)}}
+.table{display:grid;gap:8px;margin-top:6px} .head{display:grid;grid-template-columns:1.4fr 3fr .9fr .9fr;gap:10px;font-size:12px;color:var(--muted);padding-bottom:4px;border-bottom:1px solid var(--line)}
+.row{display:grid;grid-template-columns:1.4fr 3fr .9fr .9fr;align-items:center;gap:10px} .cell{font-size:12px} .cell.small{color:var(--muted)}
+.cell.bar{background:rgba(255,255,255,.04);border:1px dashed var(--line);border-radius:10px;overflow:hidden} .bar-fill{height:24px;background:linear-gradient(90deg,var(--lilac),var(--aqua));position:relative;width:var(--w)} .bar-fill span{position:absolute;right:6px;top:50%;transform:translateY(-50%);font-weight:700;font-size:11px;color:#0f0f16}
+.pane{display:grid;grid-template-columns:180px 1fr;gap:16px;align-items:center;margin-top:8px} .pie{width:180px;height:180px;border-radius:50%;background:conic-gradient(#a86cff 0.00deg 328.76deg, #50e3ff 328.76deg 341.34deg, #ff8bd4 341.34deg 344.55deg, #2b2b40 344.55deg 360deg);position:relative;border:1px solid var(--line)} .pie:after{content:"";position:absolute;inset:24px;background:var(--panel);border-radius:50%;border:1px solid var(--line)}
+.legend{display:grid;gap:6px} .legend-item{display:flex;align-items:center;justify-content:space-between;gap:8px;background:rgba(255,255,255,.04);border:1px solid var(--line);padding:8px 10px;border-radius:10px;font-size:12px}
+.swatch{width:12px;height:12px;border-radius:3px;display:inline-block}
+</style>
+</head>
+<body>
+  <div class="tv-wrap">
+    <div class="tv">
+      <div class="screen">
+        <div class="channel active" data-channel="1">
+          <div id="map"></div>
+          <div class="vignette"></div>
+        </div>
+        <div class="channel" data-channel="2">
+          <div class="wrap-inset">
+            <div class="kpis"><div class='kpi'><div class='kpi-label'>Total Plays</div><div class='kpi-value'>33,300</div></div><div class='kpi'><div class='kpi-label'>Monthly Listeners (sum)</div><div class='kpi-value'>439</div></div><div class='kpi'><div class='kpi-label'>Radio Spins</div><div class='kpi-value'>7</div></div><div class='kpi'><div class='kpi-label'>Shazams</div><div class='kpi-value'>3,484</div></div><div class='kpi'><div class='kpi-label'>Regions</div><div class='kpi-value'>85</div></div></div>
+            <div style="font-weight:700;margin-top:2px">Top 10 Regions by Plays</div>
+            <div class="head"><div>Region</div><div>Plays</div><div>Monthly</div><div>Shazams</div></div>
+            <div class="table"><div class='row'><div class='cell name'>United States</div><div class='cell bar'><div class='bar-fill' style='--w:100.0000%'><span>30,410</span></div></div><div class='cell small'>326</div><div class='cell small'>2,917</div></div>
+<div class='row'><div class='cell name'>Canada</div><div class='cell bar'><div class='bar-fill' style='--w:3.8277%'><span>1,164</span></div></div><div class='cell small'>9</div><div class='cell small'>206</div></div>
+<div class='row'><div class='cell name'>France</div><div class='cell bar'><div class='bar-fill' style='--w:0.9767%'><span>297</span></div></div><div class='cell small'>3</div><div class='cell small'>5</div></div>
+<div class='row'><div class='cell name'>United Kingdom</div><div class='cell bar'><div class='bar-fill' style='--w:0.9175%'><span>279</span></div></div><div class='cell small'>5</div><div class='cell small'>32</div></div>
+<div class='row'><div class='cell name'>Japan</div><div class='cell bar'><div class='bar-fill' style='--w:0.4834%'><span>147</span></div></div><div class='cell small'>4</div><div class='cell small'>2</div></div>
+<div class='row'><div class='cell name'>China mainland</div><div class='cell bar'><div class='bar-fill' style='--w:0.4209%'><span>128</span></div></div><div class='cell small'>1</div><div class='cell small'>0</div></div>
+<div class='row'><div class='cell name'>Germany</div><div class='cell bar'><div class='bar-fill' style='--w:0.3354%'><span>102</span></div></div><div class='cell small'>2</div><div class='cell small'>5</div></div>
+<div class='row'><div class='cell name'>South Africa</div><div class='cell bar'><div class='bar-fill' style='--w:0.2302%'><span>70</span></div></div><div class='cell small'>3</div><div class='cell small'>3</div></div>
+<div class='row'><div class='cell name'>Korea, Republic of</div><div class='cell bar'><div class='bar-fill' style='--w:0.1644%'><span>50</span></div></div><div class='cell small'>2</div><div class='cell small'>0</div></div>
+<div class='row'><div class='cell name'>Australia</div><div class='cell bar'><div class='bar-fill' style='--w:0.1414%'><span>43</span></div></div><div class='cell small'>2</div><div class='cell small'>0</div></div></div>
+          </div>
+          <div class="vignette"></div>
+        </div>
+        <div class="channel" data-channel="3">
+          <div class="wrap-inset">
+            <div style="font-weight:700">Share of Plays — Top 3 vs Others</div>
+            <div class="pane">
+              <div class="pie"></div>
+              <div class="legend"><div class='legend-item'><span class='swatch' style='background:#a86cff'></span><span>United States</span><b>91.3%</b></div>
+<div class='legend-item'><span class='swatch' style='background:#50e3ff'></span><span>Canada</span><b>3.5%</b></div>
+<div class='legend-item'><span class='swatch' style='background:#ff8bd4'></span><span>France</span><b>0.9%</b></div>
+<div class='legend-item'><span class='swatch' style='background:#2b2b40'></span><span>Other</span><b>4.3%</b></div></div>
+            </div>
+          </div>
+          <div class="vignette"></div>
+        </div>
+      </div>
+
+      <div class="side">
+        <div class="logo">SHAUNY // NEON WORLD</div>
+        <div class="readout">Channel: <span id="chanNum">1</span></div>
+        <div class="guide">
+          <h4 id="guideTitle">Channel 1 · World Map</h4>
+          <p id="guideDesc">Did you know? Shauny has been streamed in 48 countries. Tap a neon pin to see plays for that country. Use “Reset View” to recenter.</p>
+        </div>
+        <div class="dial"><div class="knob" id="knob"><div class="tick"></div></div></div>
+        <div class="dial-btns">
+          <button class="btn" id="prev">⟲ Dial Left</button>
+          <button class="btn" id="next">Dial Right ⟳</button>
+        </div>
+        <div class="channel-label" id="chanLabel" style="text-align:center;font-weight:800;letter-spacing:.3em;font-size:12px;color:#d9d7ff">MAP</div>
+      </div>
+    </div>
+  </div>
+
+<script>
+const COUNTRIES = [{"name": "United States", "streams": 30410, "coords": [37.0902, -95.7129]}, {"name": "Canada", "streams": 1164, "coords": [56.1304, -106.3468]}, {"name": "France", "streams": 297, "coords": [46.2276, 2.2137]}, {"name": "United Kingdom", "streams": 279, "coords": [55.3781, -3.436]}, {"name": "Japan", "streams": 147, "coords": [36.2048, 138.2529]}, {"name": "China mainland", "streams": 128, "coords": [35.8617, 104.1954]}, {"name": "Germany", "streams": 102, "coords": [51.1657, 10.4515]}, {"name": "South Africa", "streams": 70, "coords": [-30.5595, 22.9375]}, {"name": "Korea, Republic of", "streams": 50, "coords": [35.9078, 127.7669]}, {"name": "Australia", "streams": 43, "coords": [-25.2744, 133.7751]}, {"name": "Spain", "streams": 41, "coords": [40.4637, -3.7492]}, {"name": "Mexico", "streams": 40, "coords": [23.6345, -102.5528]}, {"name": "Portugal", "streams": 34, "coords": [39.3999, -8.2245]}, {"name": "Italy", "streams": 32, "coords": [41.8719, 12.5674]}, {"name": "Sweden", "streams": 32, "coords": [60.1282, 18.6435]}, {"name": "Switzerland", "streams": 28, "coords": [46.8182, 8.2275]}, {"name": "Indonesia", "streams": 22, "coords": [-2.5489, 118.0149]}, {"name": "Brazil", "streams": 15, "coords": [-14.235, -51.9253]}, {"name": "Israel", "streams": 15, "coords": [31.0461, 34.8516]}, {"name": "Netherlands", "streams": 15, "coords": [52.1326, 5.2913]}, {"name": "Russia", "streams": 15, "coords": [61.524, 105.3188]}, {"name": "Singapore", "streams": 12, "coords": [1.3521, 103.8198]}, {"name": "Ireland", "streams": 11, "coords": [53.1424, -7.6921]}, {"name": "Nigeria", "streams": 11, "coords": [9.082, 8.6753]}, {"name": "Peru", "streams": 11, "coords": [-9.19, -75.0152]}, {"name": "Thailand", "streams": 11, "coords": [15.87, 100.9925]}, {"name": "Ukraine", "streams": 11, "coords": [48.3794, 31.1656]}, {"name": "Philippines", "streams": 10, "coords": [12.8797, 121.774]}, {"name": "Chile", "streams": 8, "coords": [-35.6751, -71.543]}, {"name": "Colombia", "streams": 8, "coords": [4.5709, -74.2973]}, {"name": "India", "streams": 8, "coords": [22.9734, 78.6569]}, {"name": "New Zealand", "streams": 8, "coords": [-40.9006, 174.886]}, {"name": "Belgium", "streams": 7, "coords": [50.5039, 4.4699]}, {"name": "Greece", "streams": 7, "coords": [39.0742, 21.8243]}, {"name": "Ghana", "streams": 6, "coords": [7.9465, -1.0232]}, {"name": "Poland", "streams": 6, "coords": [51.9194, 19.1451]}, {"name": "Saudi Arabia", "streams": 6, "coords": [23.8859, 45.0792]}, {"name": "Argentina", "streams": 5, "coords": [-38.4161, -63.6167]}, {"name": "Norway", "streams": 5, "coords": [60.472, 8.4689]}, {"name": "Denmark", "streams": 4, "coords": [56.2639, 9.5018]}, {"name": "Austria", "streams": 3, "coords": [47.5162, 14.5501]}, {"name": "Kenya", "streams": 3, "coords": [-0.0236, 37.9062]}, {"name": "Malaysia", "streams": 3, "coords": [4.2105, 101.9758]}, {"name": "Sri Lanka", "streams": 3, "coords": [7.8731, 80.7718]}, {"name": "United Arab Emirates", "streams": 3, "coords": [23.4241, 53.8478]}, {"name": "Vietnam", "streams": 3, "coords": [14.0583, 108.2772]}, {"name": "Egypt", "streams": 2, "coords": [26.8206, 30.8025]}, {"name": "Finland", "streams": 1, "coords": [64.0, 26.0]}];
+const GUIDE = {"1": {"title": "Channel 1 \u00b7 World Map", "desc": "Did you know? Shauny has been streamed in 48 countries. Tap a neon pin to see plays for that country. Use \u201cReset View\u201d to recenter."}, "2": {"title": "Channel 2 \u00b7 Stats & Top Regions", "desc": "Totals: 33,300 plays \u2022 439 monthly listeners (sum) \u2022 7 radio spins \u2022 3,484 Shazams. Scroll the table to see the Top 10 regions by plays."}, "3": {"title": "Channel 3 \u00b7 Share of Plays", "desc": "Top 3 regions by share of all plays: United States (91.3%), Canada (3.5%), France (0.9%). The remaining regions are grouped as \u201cOther.\u201d"}};
+
+// neon color per country
+function colorFor(name){
+  let h = 0; for (let i=0;i<name.length;i++) h = (h*31 + name.charCodeAt(i)) % 360;
+  return `hsl(${h} 100% 60%)`;
+}
+
+let map;
+function initMapOnce(){
+  if (window.__mapInited) return;
+  window.__mapInited = true;
+  map = L.map('map', { zoomControl:true, minZoom:2, maxZoom:6, worldCopyJump:true }).setView([20,10], 2);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', { attribution: '&copy; OpenStreetMap & Carto', maxZoom: 6 }).addTo(map);
+  const markers = [];
+  COUNTRIES.forEach(d => {
+    const html = '<span class="neon-dot" style="--c:'+colorFor(d.name)+'"></span>';
+    const icon = L.divIcon({html: html, className:'', iconSize:[18,18], iconAnchor:[9,9]});
+    const m = L.marker([d.coords[0], d.coords[1]], {icon: icon}).addTo(map).bindPopup('<b>'+d.name+'</b><br/>'+d.streams.toLocaleString()+' plays');
+    markers.push(m);
+  });
+  if (markers.length){
+    const g = L.featureGroup(markers);
+    map.fitBounds(g.getBounds(), {padding:[40,40]});
+  }
+}
+
+// Channel dial + guide updater
+const channels = Array.from(document.querySelectorAll('.channel'));
+const chanNum = document.getElementById('chanNum');
+const label = document.getElementById('chanLabel');
+const knob = document.getElementById('knob');
+const gTitle = document.getElementById('guideTitle');
+const gDesc  = document.getElementById('guideDesc');
+const names = {1:'MAP',2:'KPIs',3:'DONUT'};
+let i = 1;
+function setChannel(n){
+  i = ((n-1+channels.length)%channels.length)+1;
+  channels.forEach(el => el.classList.remove('active'));
+  document.querySelector('.channel[data-channel="'+i+'"]').classList.add('active');
+  chanNum.textContent = i;
+  label.textContent = names[i] || ('CH '+i);
+  knob.style.setProperty('--rot', (i-1)*60 + 'deg');
+  if (i === 1) setTimeout(initMapOnce, 10);
+  // update guide
+  const g = GUIDE[String(i)];
+  if (g){ gTitle.textContent = g.title; gDesc.textContent = g.desc; }
+}
+document.getElementById('prev').addEventListener('click', () => setChannel(i-1));
+document.getElementById('next').addEventListener('click', () => setChannel(i+1));
+document.querySelector('.dial').addEventListener('click', () => setChannel(i+1));
+
+setChannel(1);
+setTimeout(initMapOnce, 10);
+</script>
+</body>
+</html>
