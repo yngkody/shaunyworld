@@ -3,53 +3,54 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>SHAUNY • Neon TV + Wallflower Circuit</title>
+<title>SHAUNY • Neon TV (Full-Screen Channels)</title>
 
-<!-- Leaflet -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="anonymous"></script>
-
-<!-- Fonts -->
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap" rel="stylesheet" />
 
 <style>
 :root{
   --bg:#0b0b12;--panel:#151526;--ink:#f2f1ff;--muted:#a6a3c9;--line:rgba(255,255,255,.12);
-  --lilac:#a86cff;--aqua:#50e3ff;--pink:#ff8bd4;--mint:#2de39b;--yellow:#ffe980
+  --lilac:#a86cff;--aqua:#50e3ff;--pink:#ff8bd4;--yellow:#ffe980
 }
 
-html,body{margin:0;background:var(--bg);color:var(--ink);font-family:ui-sans-serif,system-ui,Inter,Segoe UI,Roboto,Arial}
-.tv-wrap{display:flex;justify-content:center;align-items:flex-start;padding:40px 16px}
-.tv{position:relative;width:min(900px,95vw);aspect-ratio:16/9;background:linear-gradient(145deg,#2a2a3c,#191923);
-  border:12px solid #0a0a12;border-radius:24px;box-shadow:0 40px 90px rgba(0,0,0,.55),inset 0 0 0 2px rgba(255,255,255,.08)}
-.screen{position:absolute;inset:18px 260px 18px 18px;background:#0f0f16;border-radius:18px;overflow:hidden;
-  box-shadow:inset 0 0 0 1px rgba(255,255,255,.08),0 15px 40px rgba(0,0,0,.5)}
-.screen::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(to bottom,rgba(255,255,255,.05) 0 1px,transparent 1px 3px);
-  mix-blend-mode:overlay;pointer-events:none;opacity:.2}
+/* Layout */
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:ui-sans-serif,system-ui,Inter,Segoe UI,Roboto,Arial}
+.tv-wrap{display:flex;justify-content:center;align-items:center;min-height:100dvh;padding:16px}
+.tv{
+  position:relative;width:min(1200px,96vw);aspect-ratio:16/9;
+  background:linear-gradient(145deg,#2a2a3c,#191923);
+  border:12px solid #0a0a12;border-radius:24px;
+  box-shadow:0 40px 90px rgba(0,0,0,.55),inset 0 0 0 2px rgba(255,255,255,.08);
+  overflow:hidden;
+}
+.screen{
+  position:absolute;inset:18px;background:#0f0f16;border-radius:18px;overflow:hidden;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.08),0 15px 40px rgba(0,0,0,.5)
+}
+.screen::after{
+  content:"";position:absolute;inset:0;
+  background:repeating-linear-gradient(to bottom,rgba(255,255,255,.05) 0 1px,transparent 1px 3px);
+  mix-blend-mode:overlay;pointer-events:none;opacity:.2
+}
 .vignette{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 60%,rgba(0,0,0,.55) 100%)}
 
-/* Side panel */
-.side{position:absolute;top:18px;right:18px;bottom:18px;width:230px;background:linear-gradient(180deg,#1f1f2c,#141423);
-  border-radius:16px;border:1px solid var(--line);padding:12px;display:grid;grid-template-rows:auto auto 1fr auto auto;gap:10px}
-.logo{font-weight:800;letter-spacing:.12em;font-size:14px;opacity:.9}
-.readout{background:#0e0e18;border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-family:monospace;font-size:13px;color:#c7c5ff}
-.guide{background:#0e0e18;border:1px solid var(--line);border-radius:10px;padding:10px}
-.guide h4{margin:0 0 6px;font-size:13px}
-.guide p{margin:0;color:#cfcdf7;font-size:12px;line-height:1.35}
+/* HUD (replaces side panel) */
+.hud{
+  position:absolute;left:18px;right:18px;top:18px;display:flex;gap:8px;align-items:center;z-index:5;
+  background:rgba(20,20,35,.55);backdrop-filter:blur(6px);
+  border:1px solid var(--line);border-radius:12px;padding:8px 10px
+}
+.hud .title{font-weight:800;letter-spacing:.08em;font-size:12px;opacity:.95}
+.hud .spacer{flex:1}
+.hud .btn{background:linear-gradient(180deg,rgba(168,108,255,.25),rgba(80,227,255,.18));border:1px solid var(--line);
+  border-radius:999px;padding:6px 10px;color:var(--ink);font-size:12px;cursor:pointer}
+.hud .btn:active{transform:translateY(1px)}
+.hud .chip{font-family:monospace;font-size:12px;color:#c7c5ff;background:#0e0e18;border:1px solid var(--line);border-radius:10px;padding:4px 8px}
 
-/* Dial */
-.dial{height:130px;width:130px;border-radius:50%;margin:6px auto;background:radial-gradient(circle at 30% 30%,#3a3955,#1c1b2e);
-  border:6px solid #0f0f16;position:relative;box-shadow:inset 0 0 30px rgba(0,0,0,.6),0 8px 18px rgba(0,0,0,.4);cursor:pointer}
-.dial .knob{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(var(--rot,0deg));
-  width:104px;height:104px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#5a5880,#23213a);border:2px solid rgba(255,255,255,.08)}
-.tick{position:absolute;left:50%;top:6px;transform:translateX(-50%);width:4px;height:14px;border-radius:2px;background:#cfd2ff;box-shadow:0 0 12px rgba(168,108,255,.6)}
-.dial-btns{display:flex;gap:8px;justify-content:center}
-.btn{background:linear-gradient(180deg,rgba(168,108,255,.25),rgba(80,227,255,.18));border:1px solid var(--line);
-  border-radius:999px;padding:8px 10px;color:var(--ink);font-size:12px;cursor:pointer}
-.btn:active{transform:translateY(1px)}
-.channel-label{text-align:center;font-weight:800;letter-spacing:.3em;font-size:11px;color:#d9d7ff}
-
-/* Channels */
+/* Channels (full-screen inside TV) */
+.channels{position:absolute;inset:18px;display:block}
 .channel{position:absolute;inset:0;display:none;padding:12px}
 .channel.active{display:block}
 #map{position:absolute;inset:0}
@@ -61,7 +62,7 @@ html,body{margin:0;background:var(--bg);color:var(--ink);font-family:ui-sans-ser
 .leaflet-popup-content-wrapper{background:var(--panel);color:var(--ink);border-radius:12px;border:1px solid var(--line)}
 .leaflet-popup-tip{background:var(--panel)}
 
-/* Stats panes */
+/* Stats */
 .wrap-inset{padding:12px;display:grid;gap:10px;height:100%;overflow:auto}
 .kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
 .kpi{background:linear-gradient(180deg,rgba(168,108,255,.08),rgba(80,227,255,.08));border:1px solid var(--line);border-radius:12px;padding:8px}
@@ -82,106 +83,101 @@ html,body{margin:0;background:var(--bg);color:var(--ink);font-family:ui-sans-ser
   padding:8px 10px;border-radius:10px;font-size:12px}
 .swatch{width:12px;height:12px;border-radius:3px;display:inline-block}
 
-/* GAME (Wallflower Circuit) */
+/* GAME */
 .game-wrap{display:grid;place-items:center;height:100%;padding:8px}
-#quiz-card{position:relative;margin:auto;padding:18px;max-width:680px;width:100%;background:rgba(0,0,0,0.78);
+#quiz-card{position:relative;margin:auto;padding:18px;max-width:900px;width:min(100%,900px);background:rgba(0,0,0,0.78);
   border:2px solid var(--pink);border-radius:18px;box-shadow:0 0 20px var(--pink), 0 0 45px var(--aqua);text-align:center;font-family:'Orbitron',sans-serif}
-#quiz-card h1{font-size:clamp(22px,4vw,30px);color:var(--pink);text-shadow:0 0 12px var(--pink),0 0 24px var(--aqua);margin:6px 0 10px}
-#q{font-size:clamp(14px,3.5vw,18px);margin:8px 0 14px}
-#opts{display:flex;flex-wrap:wrap;justify-content:center}
-#opts button{background:linear-gradient(90deg,var(--pink),var(--aqua));border:none;padding:10px 14px;margin:6px;border-radius:12px;
-  font-weight:bold;color:#000;cursor:pointer;text-transform:uppercase;min-width:130px;flex:1 1 40%;
+#quiz-card h1{font-size:clamp(22px,4vw,34px);color:var(--pink);text-shadow:0 0 12px var(--pink),0 0 24px var(--aqua);margin:6px 0 10px}
+#q{font-size:clamp(14px,3.4vw,20px);margin:8px 0 14px}
+#opts{display:grid;grid-template-columns:repeat(2,minmax(160px,1fr));gap:12px;justify-content:center}
+@media (max-width:640px){#opts{grid-template-columns:1fr}}
+#opts button{background:linear-gradient(90deg,var(--pink),var(--aqua));border:none;padding:12px;margin:0;border-radius:12px;
+  font-weight:bold;color:#000;cursor:pointer;text-transform:uppercase;min-height:44px;
   box-shadow:0 0 10px var(--pink),0 0 20px var(--aqua);transition:transform .2s, box-shadow .2s}
-#opts button:hover{transform:scale(1.05);box-shadow:0 0 18px var(--pink),0 0 36px var(--aqua)}
+#opts button:hover{transform:scale(1.03);box-shadow:0 0 18px var(--pink),0 0 36px var(--aqua)}
 #result{margin-top:12px;font-size:16px;color:var(--yellow);text-shadow:0 0 10px var(--pink);min-height:24px}
 .game-cta{display:inline-block;margin-top:12px;padding:10px 20px;border-radius:12px;background:linear-gradient(90deg,var(--pink),var(--aqua));
   text-decoration:none;color:#000;font-weight:bold;text-transform:uppercase;box-shadow:0 0 10px var(--pink),0 0 20px var(--aqua)}
 .game-cta:hover{filter:brightness(1.05)}
-.lifelines{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:8px}
+.lifelines{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:10px}
 .lifelines button{background:#0e0e18;border:1px solid var(--line);color:#fff;border-radius:999px;padding:6px 10px;cursor:pointer}
-.modal{position:absolute;inset:0;background:rgba(0,0,0,.8);display:none;align-items:center;justify-content:center;border-radius:16px}
+.modal{position:absolute;inset:0;background:rgba(0,0,0,.8);display:none;align-items:center;justify-content:center;border-radius:16px;z-index:6}
 .modal.open{display:flex}
 #miniMap{width:min(520px,92%);height:320px;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#0e0e18}
 .modal-close{position:absolute;top:10px;right:10px;background:#0e0e18;color:#fff;border:1px solid var(--line);border-radius:8px;padding:6px 10px;cursor:pointer}
 </style>
 </head>
 <body>
-
-<div class="tv-wrap"><div class="tv">
-  <div class="screen">
-    <!-- CH1 MAP -->
-    <div class="channel active" data-channel="1">
-      <div id="map" aria-label="World map"></div>
-      <div class="vignette"></div>
-    </div>
-
-    <!-- CH2 STATS -->
-    <div class="channel" data-channel="2">
-      <div class="wrap-inset">
-        <div class="kpis" id="kpis"></div>
-        <div style="font-weight:700;margin-top:2px">Top 10 Regions by Plays</div>
-        <div class="head"><div>Region</div><div>Plays</div><div>Monthly</div><div>Shazams</div></div>
-        <div class="table" id="rows"></div>
+  <div class="tv-wrap">
+    <div class="tv">
+      <!-- HUD -->
+      <div class="hud">
+        <div class="title">SHAUNY // NEON WORLD</div>
+        <span class="chip" id="hudChan">CH 1 • MAP</span>
+        <div class="spacer"></div>
+        <button class="btn" id="prev">⟲ Dial Left</button>
+        <button class="btn" id="next">Dial Right ⟳</button>
       </div>
-      <div class="vignette"></div>
-    </div>
 
-    <!-- CH3 DONUT -->
-    <div class="channel" data-channel="3">
-      <div class="wrap-inset">
-        <div style="font-weight:700">Share of Plays — Top 3 vs Others</div>
-        <div class="pane">
-          <div class="pie" id="pie"></div>
-          <div class="legend" id="legend"></div>
-        </div>
-      </div>
-      <div class="vignette"></div>
-    </div>
-
-    <!-- CH4 GAME -->
-    <div class="channel" data-channel="4">
-      <div class="game-wrap">
-        <div id="quiz-card">
-          <button class="modal-close" id="restartBtn" title="Try again">↻ Try Again</button>
-          <h1>Wallflower Circuit</h1>
-          <div id="q" aria-live="polite"></div>
-          <div id="opts"></div>
-          <div class="lifelines">
-            <button id="mapPeek">🗺️ Map Peek</button>
-            <button id="statsTip">📊 Stats Tip</button>
+      <!-- Screen -->
+      <div class="screen">
+        <div class="channels">
+          <!-- CH1 MAP -->
+          <div class="channel active" data-channel="1">
+            <div id="map" aria-label="World map"></div>
           </div>
-          <div id="result" aria-live="polite"></div>
 
-          <!-- Modal -->
-          <div class="modal" id="miniMapModal" aria-modal="true" role="dialog">
-            <button class="modal-close" id="closeMap">Close</button>
-            <div id="miniMap"></div>
+          <!-- CH2 STATS -->
+          <div class="channel" data-channel="2">
+            <div class="wrap-inset">
+              <div class="kpis" id="kpis"></div>
+              <div style="font-weight:700;margin-top:2px">Top 10 Regions by Plays</div>
+              <div class="head"><div>Region</div><div>Plays</div><div>Monthly</div><div>Shazams</div></div>
+              <div class="table" id="rows"></div>
+            </div>
+          </div>
+
+          <!-- CH3 DONUT -->
+          <div class="channel" data-channel="3">
+            <div class="wrap-inset">
+              <div style="font-weight:700">Share of Plays — Top 3 vs Others</div>
+              <div class="pane">
+                <div class="pie" id="pie"></div>
+                <div class="legend" id="legend"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- CH4 GAME -->
+          <div class="channel" data-channel="4">
+            <div class="game-wrap">
+              <div id="quiz-card">
+                <button class="modal-close" id="restartBtn" title="Try again">↻ Try Again</button>
+                <h1>Wallflower Circuit</h1>
+                <div id="q" aria-live="polite"></div>
+                <div id="opts"></div>
+                <div class="lifelines">
+                  <button id="mapPeek">🗺️ Map Peek</button>
+                  <button id="statsTip">📊 Stats Tip</button>
+                </div>
+                <div id="result" aria-live="polite"></div>
+
+                <!-- Modal -->
+                <div class="modal" id="miniMapModal" aria-modal="true" role="dialog">
+                  <button class="modal-close" id="closeMap">Close</button>
+                  <div id="miniMap"></div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
+        <div class="vignette"></div>
       </div>
-      <div class="vignette"></div>
     </div>
   </div>
-
-  <!-- Side panel -->
-  <div class="side">
-    <div class="logo">SHAUNY // NEON WORLD</div>
-    <div class="readout">Channel: <span id="chanNum">1</span> • <span id="chanName">MAP</span></div>
-    <div class="guide">
-      <h4 id="guideTitle">Channel 1 · World Map</h4>
-      <p id="guideDesc">Did you know? Shauny has been streamed in <span id="countryCount">0</span> countries. Tap a neon pin to see plays for that country.</p>
-    </div>
-    <div class="dial" id="dial"><div class="knob" id="knob"><div class="tick"></div></div></div>
-    <div class="dial-btns">
-      <button class="btn" id="prev">⟲ Dial Left</button>
-      <button class="btn" id="next">Dial Right ⟳</button>
-    </div>
-    <div class="channel-label">1=MAP • 2=KPIs • 3=DONUT • 4=GAME</div>
-  </div>
-</div></div>
 
 <script>
-/* ===================== DATA ===================== */
+/* ---------- DATA ---------- */
 const COUNTRIES = [
   { name:"United States", streams:30410, coords:[37.0902,-95.7129] },
   { name:"Finland", streams:55130, coords:[64.0,26.0] },
@@ -194,53 +190,35 @@ const COUNTRIES = [
   { name:"United Kingdom", streams:7849, coords:[55.3781,-3.4360] },
   { name:"Sri Lanka", streams:7162, coords:[7.8731,80.7718] }
 ];
-const TOTALS = {
-  plays: 209881 + 33499 + 198170,  // example aggregate
-  monthly: 0, spins: 7000, shazams: 0, regions: COUNTRIES.length
-};
+const TOTALS = { plays: 209881 + 33499 + 198170, monthly: 0, spins: 7000, shazams: 0 };
 
-/* ===================== UTIL ===================== */
-const $ = (sel, ctx=document) => ctx.querySelector(sel);
-const $$ = (sel, ctx=document) => [...ctx.querySelectorAll(sel)];
+/* ---------- UTIL ---------- */
+const $ = (s,ctx=document)=>ctx.querySelector(s);
+const $$ = (s,ctx=document)=>[...ctx.querySelectorAll(s)];
 const fmt = n => Number(n||0).toLocaleString();
 function hslFor(name){ let h=0; for(let i=0;i<name.length;i++) h=(h*31+name.charCodeAt(i))%360; return `hsl(${h} 100% 60%)`; }
 
-/* ===================== CHANNEL/DIAL ===================== */
+/* ---------- CHANNELS ---------- */
 const channels=$$('.channel');
-const chanNum=$('#chanNum');
-const chanNameEl=$('#chanName');
-const knob=$('#knob');
-const guideTitle=$('#guideTitle');
-const guideDesc=$('#guideDesc');
-const countryCountEl=$('#countryCount');
+const hudChan=$('#hudChan');
 const NAMES={1:'MAP',2:'KPIs',3:'DONUT',4:'GAME'};
-const GUIDE={
-  1:{t:'Channel 1 · World Map', d:()=>`Did you know? Shauny has been streamed in ${COUNTRIES.length} countries. Tap a neon pin to see plays for that country.`},
-  2:{t:'Channel 2 · Stats & Top Regions', d:()=>`Totals: ${fmt(TOTALS.plays)} plays • ${fmt(TOTALS.spins)} radio spins. Explore Top 10 regions by plays.`},
-  3:{t:'Channel 3 · Share of Plays', d:()=>`The donut shows the top three regions by share of all plays vs “Other.”`},
-  4:{t:'Channel 4 · Wallflower Circuit', d:()=>`Answer questions. Use Map Peek to view the neon map, or Stats Tip for totals. Score 3+ to unlock the EP. Try Again resets the game.`}
-};
 let chan=1;
+
 function setChannel(n){
   chan=((n-1+channels.length)%channels.length)+1;
   channels.forEach(c=>c.classList.remove('active'));
   $(`.channel[data-channel="${chan}"]`).classList.add('active');
-
-  chanNum.textContent=chan;
-  chanNameEl.textContent=NAMES[chan]||`CH ${chan}`;
-  knob.style.setProperty('--rot',(chan-1)*60+'deg');
-  guideTitle.textContent=GUIDE[chan].t;
-  guideDesc.textContent=GUIDE[chan].d();
+  hudChan.textContent=`CH ${chan} • ${NAMES[chan]}`;
 
   if(chan===1) initMapOnce();
   if(chan===2 && !statsBuilt) buildStats();
   if(chan===3) drawDonut();
 }
+
 $('#prev').addEventListener('click',()=>setChannel(chan-1));
 $('#next').addEventListener('click',()=>setChannel(chan+1));
-$('#dial').addEventListener('click',()=>setChannel(chan+1));
 
-/* ===================== MAPS ===================== */
+/* ---------- MAPS ---------- */
 let mapMain, mapMini, mapInited=false, miniInited=false;
 
 function initMapOnce(){
@@ -270,7 +248,7 @@ function initMini(){
   });
 }
 
-/* ===================== STATS (CH2) ===================== */
+/* ---------- STATS ---------- */
 let statsBuilt=false;
 function buildStats(){
   statsBuilt=true;
@@ -295,7 +273,7 @@ function buildStats(){
   }).join('');
 }
 
-/* ===================== DONUT (CH3) ===================== */
+/* ---------- DONUT ---------- */
 function drawDonut(){
   const sorted=[...COUNTRIES].sort((a,b)=>b.streams-a.streams);
   const top3=sorted.slice(0,3), total=sorted.reduce((s,d)=>s+d.streams,0)||1;
@@ -311,7 +289,7 @@ function drawDonut(){
     `<div class="legend-item"><span class="swatch" style="background:#2b2b40"></span><span>Other</span><b>${(otherShare*100).toFixed(1)}%</b></div>`;
 }
 
-/* ===================== GAME (CH4) ===================== */
+/* ---------- GAME ---------- */
 const quizData=[
  {q:"What’s my favorite color?",o:["Pink","Blue","Gold","Green"],a:"Pink"},
  {q:"What group was my dad in?",o:["The Golden Sons","The Temptations","The Clark Sisters","Take 6"],a:"The Golden Sons"},
@@ -322,12 +300,10 @@ const quizData=[
 
 let qIdx=0, score=0, locked=false;
 const qEl=$('#q'), optsEl=$('#opts'), resEl=$('#result');
-const restartBtn=$('#restartBtn');
-const modal=$('#miniMapModal');
+$('#restartBtn').addEventListener('click', resetQuiz);
 
 function renderQuestion(){
   if(qIdx>=quizData.length){ return finishQuiz(); }
-
   const q=quizData[qIdx];
   qEl.textContent=q.q;
   resEl.textContent='';
@@ -350,59 +326,42 @@ function handleAnswer(choice){
   if(isCorrect) score++;
   qIdx++;
 
-  // brief feedback flash
   resEl.textContent = isCorrect ? '✓ Correct!' : '✗ Not this one';
-  setTimeout(renderQuestion, 350);
+  setTimeout(renderQuestion, 300);
 }
 
 function finishQuiz(){
   qEl.textContent="Quiz Complete!";
   optsEl.innerHTML='';
   const passed = score >= 3;
-
   resEl.innerHTML = `You got <b>${score}</b> / ${quizData.length} correct. ${passed ? 'Nice!' : 'Try again to unlock!'}`;
 
   if(passed){
     const cta=document.createElement('a');
-    cta.className='game-cta';
-    cta.href='music';
-    cta.target='_blank';
-    cta.textContent='Unlock EP';
+    cta.className='game-cta'; cta.href='music'; cta.target='_blank'; cta.textContent='Unlock EP';
     optsEl.appendChild(cta);
-  } else {
+  }else{
     const retry=document.createElement('button');
-    retry.className='game-cta';
-    retry.type='button';
-    retry.textContent='Try Again';
-    retry.addEventListener('click',resetQuiz);
-    optsEl.appendChild(retry);
+    retry.className='game-cta'; retry.type='button'; retry.textContent='Try Again';
+    retry.addEventListener('click',resetQuiz); optsEl.appendChild(retry);
   }
 }
 
-function resetQuiz(){
-  qIdx=0; score=0; locked=false;
-  renderQuestion();
-  resEl.textContent='';
-}
+function resetQuiz(){ qIdx=0; score=0; locked=false; renderQuestion(); resEl.textContent=''; }
 
-// Lifelines
+/* Lifelines */
+const modal=$('#miniMapModal');
 $('#mapPeek').addEventListener('click',()=>{
   modal.classList.add('open');
-  // init or refresh mini-map sizing after modal becomes visible
-  setTimeout(()=>{
-    if(!miniInited){ initMini(); }
-    else { mapMini.invalidateSize(); }
-  }, 50);
+  setTimeout(()=>{ if(!miniInited){ initMini(); } else { mapMini.invalidateSize(); } }, 40);
 });
 $('#closeMap').addEventListener('click',()=> modal.classList.remove('open'));
 $('#statsTip').addEventListener('click',()=>{
   const top = [...COUNTRIES].sort((a,b)=>b.streams-a.streams).slice(0,3);
   resEl.innerHTML = `Totals: <b>${fmt(TOTALS.plays)}</b> plays • Top: ${top.map(d=>`${d.name} (${fmt(d.streams)})`).join(', ')}`;
 });
-restartBtn.addEventListener('click', resetQuiz);
 
-/* ===================== INIT ===================== */
-countryCountEl.textContent = COUNTRIES.length;
+/* ---------- INIT ---------- */
 setChannel(1);
 initMapOnce();
 renderQuestion();
