@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>SHAUNY • Channel 4 LIVE — Wallflower Circuit</title>
+<title>SHAUNY • Channel 4 LIVE — Wallflower Circuit (Mobile-First)</title>
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="anonymous"></script>
@@ -19,73 +19,71 @@
 /* Page */
 html,body{margin:0;height:100%;background:radial-gradient(1200px at 50% -10%,#141425,#090912 70%);color:var(--ink);
   font-family:ui-sans-serif,system-ui,Inter,Segoe UI,Roboto,Arial}
-
-/* TV shell */
-.tv-wrap{display:grid;place-items:center;min-height:100dvh;padding:18px}
+/* Mobile-first TV */
+.tv-wrap{display:grid;place-items:center;min-height:100dvh;padding:12px}
 .tv{
-  width:min(1200px,96vw);aspect-ratio:16/9;position:relative;border-radius:32px;
+  width:100%;max-width:900px;aspect-ratio:16/9;position:relative;border-radius:26px;
   background:linear-gradient(160deg,#2a2a3c,#151522);
-  box-shadow:0 40px 120px rgba(0,0,0,.6),
-             inset 0 0 0 18px var(--bezel),
-             inset 0 0 0 20px rgba(255,255,255,.06)
+  box-shadow:0 36px 90px rgba(0,0,0,.6),
+             inset 0 0 0 14px var(--bezel),
+             inset 0 0 0 16px rgba(255,255,255,.06)
 }
-.tv:before{content:"";position:absolute;inset:12px;border-radius:28px;
+.tv:before{content:"";position:absolute;inset:10px;border-radius:22px;
   background:linear-gradient(180deg,#24243a,#0e0e18);box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
-.screen{position:absolute;inset:28px;border-radius:20px;overflow:hidden;background:var(--glass);
+.screen{position:absolute;inset:22px;border-radius:18px;overflow:hidden;background:var(--glass);
   box-shadow:inset 0 0 0 1px rgba(255,255,255,.07)}
 .screen:after{content:"";position:absolute;inset:0;pointer-events:none;opacity:.15;mix-blend-mode:overlay;
   background:repeating-linear-gradient(to bottom,rgba(255,255,255,.25) 0 1px,transparent 1px 3px)}
 
-/* Channel overlay HUD (inside the screen so no clipping) */
+/* Channel overlay HUD (inside the screen) */
 .hud{
-  position:absolute;left:10px;right:10px;top:10px;z-index:5;display:flex;align-items:center;gap:10px;
-  background:rgba(14,14,24,.7);backdrop-filter:blur(6px);border:1px solid var(--line);border-radius:10px;padding:6px 10px
+  position:absolute;left:8px;right:8px;top:8px;z-index:5;display:flex;align-items:center;gap:8px;
+  background:rgba(14,14,24,.7);backdrop-filter:blur(6px);border:1px solid var(--line);border-radius:10px;padding:6px 8px
 }
 .badge{display:inline-flex;align-items:center;gap:6px;padding:3px 8px;border-radius:999px;border:1px solid var(--line);
-  font-family:monospace;background:#0e0e18;color:#cfd2ff}
+  font-family:monospace;background:#0e0e18;color:#cfd2ff;font-size:12px}
 .dot{width:8px;height:8px;border-radius:50%;background:#ff4d6d;box-shadow:0 0 8px #ff4d6d}
-.hud .brand{font-weight:800;letter-spacing:.12em;font-size:12px}
 .hud .spacer{flex:1}
 
-/* Stage + progress beam */
-.stage{position:absolute;inset:0;display:grid;place-items:center;padding:56px 16px 24px}
-.beam{position:absolute;left:0;right:0;top:48px;height:3px;background:linear-gradient(90deg,var(--pink),var(--aqua));
+/* Stage */
+.stage{position:absolute;inset:0;display:grid;place-items:center;padding:56px 8px 16px}
+.beam{position:absolute;left:0;right:0;top:46px;height:3px;background:linear-gradient(90deg,var(--pink),var(--aqua));
   box-shadow:0 0 14px var(--pink),0 0 26px var(--aqua);transform-origin:left;transform:scaleX(var(--p,0));opacity:.7}
 
 /* Card */
-.card{position:relative;width:min(980px,92%);max-width:980px;margin:auto;padding:20px;border-radius:18px;
+.card{position:relative;width:100%;max-width:820px;margin:auto;padding:14px;border-radius:16px;
   background:rgba(0,0,0,.78);text-align:center;font-family:'Orbitron',sans-serif;
-  border:2px solid var(--pink);box-shadow:0 0 20px var(--pink),0 0 45px var(--aqua)}
-.card h1{margin:2px 0 4px;font-size:clamp(22px,3.6vw,34px);color:var(--pink);text-shadow:0 0 14px var(--pink),0 0 32px var(--aqua)}
-.subtitle{margin:0 0 10px;color:#dcdafc;opacity:.9}
+  border:2px solid var(--pink);box-shadow:0 0 16px var(--pink),0 0 32px var(--aqua)}
+.card h1{margin:2px 0 8px;font-size:clamp(20px,5vw,28px);color:var(--pink);text-shadow:0 0 12px var(--pink),0 0 24px var(--aqua)}
+.subtitle{margin:0 0 8px;color:#dcdafc;opacity:.9;font-size:12px}
 
 /* Timer ring */
-.ring{--deg:0deg;position:absolute;right:12px;top:12px;width:56px;height:56px;border-radius:50%;
+.ring{--deg:0deg;position:absolute;right:10px;top:10px;width:48px;height:48px;border-radius:50%;
   background:conic-gradient(var(--aqua) var(--deg), rgba(255,255,255,.06) 0);
   display:grid;place-items:center;border:1px solid var(--line);box-shadow:inset 0 0 0 2px rgba(0,0,0,.6)}
-.ring span{display:inline-block;background:#0e0e18;border:1px solid var(--line);width:40px;height:40px;border-radius:50%;
-  line-height:40px;text-align:center;font-weight:800}
+.ring span{display:inline-block;background:#0e0e18;border:1px solid var(--line);width:36px;height:36px;border-radius:50%;
+  line-height:36px;text-align:center;font-weight:800;font-size:12px}
 
-/* Q/A */
-#question{font-size:clamp(16px,2.4vw,22px);margin:12px 0 14px}
-#answers{display:grid;grid-template-columns:repeat(2,minmax(180px,1fr));gap:12px}
-@media (max-width:640px){#answers{grid-template-columns:1fr}}
+/* Q/A — mobile first */
+#question{font-size:clamp(16px,4.8vw,20px);margin:10px 0 12px}
+#answers{display:grid;grid-template-columns:1fr;gap:10px}
+@media (min-width:640px){#answers{grid-template-columns:repeat(2,minmax(160px,1fr))}}
 .answer{
   background:linear-gradient(90deg,var(--pink),var(--aqua));border:0;border-radius:12px;min-height:48px;padding:12px;
   font-weight:800;color:#000;text-transform:uppercase;cursor:pointer;
-  box-shadow:0 0 10px var(--pink),0 0 20px var(--aqua);transition:transform .15s,box-shadow .15s,filter .15s
+  box-shadow:0 0 10px var(--pink),0 0 20px var(--aqua);transition:transform .15s,box-shadow .15s,filter .15s;font-size:14px
 }
 .answer:hover{transform:translateY(-1px);filter:brightness(1.03)}
 .answer.dim{filter:saturate(.1) brightness(.6);pointer-events:none}
 
 /* Meta row */
-.meta{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:10px}
-.pill{background:#0e0e18;border:1px solid var(--line);border-radius:999px;padding:6px 10px}
-.icon-btn{background:#0e0e18;border:1px solid var(--line);color:#fff;border-radius:999px;padding:6px 12px;cursor:pointer}
+.meta{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:8px}
+.pill{background:#0e0e18;border:1px solid var(--line);border-radius:999px;padding:6px 10px;font-size:12px}
+.icon-btn{background:#0e0e18;border:1px solid var(--line);color:#fff;border-radius:999px;padding:8px 14px;cursor:pointer;font-size:12px}
 
 /* Feedback + CTA */
-#result{margin-top:10px;min-height:24px;color:var(--yellow);text-shadow:0 0 10px var(--pink)}
-.cta{display:inline-block;margin-top:12px;padding:10px 20px;border-radius:12px;background:linear-gradient(90deg,var(--pink),var(--aqua));
+#result{margin-top:8px;min-height:22px;color:#fff}
+.cta{display:inline-block;margin-top:10px;padding:10px 18px;border-radius:12px;background:linear-gradient(90deg,var(--pink),var(--aqua));
   color:#000;font-weight:800;text-decoration:none}
 
 /* Animations */
@@ -94,41 +92,41 @@ html,body{margin:0;height:100%;background:radial-gradient(1200px at 50% -10%,#14
 @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
 .nope{animation:shake .25s linear}
 
-/* Modals (Map + Stats) */
-.modal{position:absolute;inset:0;display:none;align-items:center;justify-content:center;z-index:6}
+/* Modals */
+.modal{position:absolute;inset:0;display:none;align-items:flex-start;justify-content:center;padding:10px;z-index:6}
 .modal.open{display:flex}
-.panel{width:min(1100px,94%);max-height:86dvh;overflow:auto;padding:14px;border-radius:16px;
+.panel{width:100%;max-width:880px;max-height:86dvh;overflow:auto;padding:12px;border-radius:14px;
   background:linear-gradient(180deg,#1c1c2a,#12121f);border:1px solid var(--line);box-shadow:0 0 28px rgba(0,0,0,.6)}
-.head{display:flex;gap:10px;align-items:center;margin-bottom:10px}
-.head h3{margin:0;font-size:16px;letter-spacing:.08em}
+.head{display:flex;gap:10px;align-items:center;margin-bottom:8px}
+.head h3{margin:0;font-size:14px;letter-spacing:.08em}
 .head .spacer{flex:1}
 .head .icon-btn{padding:6px 10px}
-#mapBox{width:100%;height:min(560px,65dvh);border:1px solid var(--line);border-radius:12px;background:#0e0e18;overflow:hidden}
+#mapBox{width:100%;height:min(520px,65dvh);border:1px solid var(--line);border-radius:12px;background:#0e0e18;overflow:hidden}
+
+/* Stats */
+.kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:8px}
+@media (min-width:720px){.kpis{grid-template-columns:repeat(5,1fr)}}
+.kpi{background:linear-gradient(180deg,rgba(168,108,255,.08),rgba(80,227,255,.08));border:1px solid var(--line);border-radius:12px;padding:8px}
+.kpi .lab{font-size:10px;color:var(--muted)} .kpi .val{font-size:16px;font-weight:800}
+.table{display:grid;gap:6px;max-height:50dvh;overflow:auto;border-top:1px solid var(--line);padding-top:8px}
+.row{display:grid;grid-template-columns:1.6fr .8fr .8fr .8fr .8fr;gap:8px;align-items:center;font-size:12px}
+.row.head{position:sticky;top:0;background:#12121f;border-bottom:1px solid var(--line);padding:6px 0;color:var(--muted);z-index:1}
+.search{display:flex;gap:8px;margin:6px 0}
+.search input{flex:1;padding:8px;border-radius:8px;border:1px solid var(--line);background:#0e0e18;color:#fff}
+.legend{display:grid;gap:6px;margin-top:10px}
+.donut{display:grid;grid-template-columns:140px 1fr;gap:10px;align-items:center}
+.pie{width:140px;height:140px;border-radius:50%;border:1px solid var(--line);position:relative}
+.pie:after{content:"";position:absolute;inset:18px;border-radius:50%;background:#151526;border:1px solid var(--line)}
+.swatch{width:12px;height:12px;border-radius:3px;display:inline-block}
+.legend-item{display:flex;align-items:center;justify-content:space-between;gap:8px;background:rgba(255,255,255,.04);border:1px solid var(--line);
+  padding:6px 8px;border-radius:10px;font-size:12px}
+
+/* Leaflet tweaks */
 .leaflet-div-icon{background:transparent;border:none}
 .neon-dot{--c:#a86cff;width:16px;height:16px;border-radius:50%;display:block;background:var(--c);
   border:2px solid rgba(255,255,255,.95);box-shadow:0 0 10px var(--c),0 0 24px var(--c),0 0 40px var(--c)}
 .leaflet-popup-content-wrapper{background:#151526;color:var(--ink);border-radius:12px;border:1px solid var(--line)}
 .leaflet-popup-tip{background:#151526}
-
-/* Stats */
-.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:8px}
-@media (max-width:900px){.kpis{grid-template-columns:repeat(2,1fr)}}
-.kpi{background:linear-gradient(180deg,rgba(168,108,255,.08),rgba(80,227,255,.08));border:1px solid var(--line);border-radius:12px;padding:8px}
-.kpi .lab{font-size:11px;color:var(--muted)} .kpi .val{font-size:18px;font-weight:800}
-.table{display:grid;gap:6px}
-.headrow,.row{display:grid;grid-template-columns:1.3fr 3fr .9fr .9fr;gap:8px;align-items:center}
-.headrow{font-size:12px;color:var(--muted);padding-bottom:4px;border-bottom:1px solid var(--line)}
-.cell{font-size:12px}
-.cell.bar{background:rgba(255,255,255,.04);border:1px dashed var(--line);border-radius:10px;overflow:hidden}
-.fill{height:22px;background:linear-gradient(90deg,var(--lilac),var(--aqua));position:relative;width:var(--w)}
-.fill span{position:absolute;right:6px;top:50%;transform:translateY(-50%);font-weight:700;font-size:11px;color:#0f0f16}
-.donut{display:grid;grid-template-columns:160px 1fr;gap:14px;align-items:center;margin-top:10px}
-.pie{width:160px;height:160px;border-radius:50%;border:1px solid var(--line);position:relative}
-.pie:after{content:"";position:absolute;inset:22px;border-radius:50%;background:#151526;border:1px solid var(--line)}
-.legend{display:grid;gap:6px}
-.legend-item{display:flex;align-items:center;justify-content:space-between;gap:8px;background:rgba(255,255,255,.04);border:1px solid var(--line);
-  padding:8px 10px;border-radius:10px;font-size:12px}
-.swatch{width:12px;height:12px;border-radius:3px;display:inline-block}
 </style>
 </head>
 <body>
@@ -152,7 +150,7 @@ html,body{margin:0;height:100%;background:radial-gradient(1200px at 50% -10%,#14
         <div class="card" id="card">
           <div class="ring" id="ring"><span id="t">20</span></div>
           <h1>Wallflower Circuit</h1>
-          <p class="subtitle">Answer fast to boost your streak multiplier</p>
+          <p class="subtitle">Easy mode • Beat the clock for bonus points</p>
 
           <div id="question"></div>
           <div id="answers"></div>
@@ -173,7 +171,7 @@ html,body{margin:0;height:100%;background:radial-gradient(1200px at 50% -10%,#14
       <!-- MAP MODAL -->
       <div class="modal" id="mapModal" aria-modal="true" role="dialog">
         <div class="panel">
-          <div class="head"><h3>Neon World Map</h3><div class="spacer"></div><button id="closeMap" class="icon-btn">Close</button></div>
+          <div class="head"><h3>Neon World Map (Top 10 by plays)</h3><div class="spacer"></div><button id="closeMap" class="icon-btn">Close</button></div>
           <div id="mapBox"></div>
         </div>
       </div>
@@ -181,11 +179,17 @@ html,body{margin:0;height:100%;background:radial-gradient(1200px at 50% -10%,#14
       <!-- STATS MODAL -->
       <div class="modal" id="statsModal" aria-modal="true" role="dialog">
         <div class="panel">
-          <div class="head"><h3>Stats & Top Regions</h3><div class="spacer"></div><button id="closeStats" class="icon-btn">Close</button></div>
+          <div class="head"><h3>Stats & Regions (All)</h3><div class="spacer"></div><button id="closeStats" class="icon-btn">Close</button></div>
+
           <div class="kpis" id="kpis"></div>
-          <div class="headrow"><div>Region</div><div>Plays</div><div>Monthly</div><div>Shazams</div></div>
-          <div class="table" id="rows"></div>
-          <div class="donut">
+
+          <div class="search">
+            <input id="searchInput" placeholder="Search regions…" />
+          </div>
+
+          <div class="table" id="regionTable"></div>
+
+          <div class="donut" style="margin-top:8px">
             <div class="pie" id="pie"></div>
             <div class="legend" id="legend"></div>
           </div>
@@ -198,61 +202,46 @@ html,body{margin:0;height:100%;background:radial-gradient(1200px at 50% -10%,#14
 
 <script>
 /* ========= DATA ========= */
-const COUNTRIES = [
-  { name:"United States", streams:30410, coords:[37.0902,-95.7129] },
-  { name:"Finland", streams:55130, coords:[64.0,26.0] },
-  { name:"India", streams:52048, coords:[22.9734,78.6569] },
-  { name:"Cambodia", streams:16128, coords:[12.5657,104.991] },
-  { name:"Indonesia", streams:13315, coords:[-2.5489,118.0149] },
-  { name:"Bangladesh", streams:12836, coords:[23.685,90.3563] },
-  { name:"Nepal", streams:11955, coords:[28.3949,84.124] },
-  { name:"Philippines", streams:11055, coords:[12.8797,121.774] },
-  { name:"United Kingdom", streams:7849, coords:[55.3781,-3.4360] },
-  { name:"Sri Lanka", streams:7162, coords:[7.8731,80.7718] }
-];
-const TOTALS = { plays: 209881 + 33499 + 198170, spins: 7000, shazams: 0 };
+/* Full region list pulled from your Apple Music CSV (85 rows) */
+const REGIONS = [{"name":"United States","plays":30410,"monthly":326,"spins":5,"shazams":2917},{"name":"Canada","plays":1164,"monthly":9,"spins":0,"shazams":206},{"name":"France","plays":297,"monthly":3,"spins":0,"shazams":5},{"name":"United Kingdom","plays":279,"monthly":5,"spins":1,"shazams":32},{"name":"Japan","plays":147,"monthly":4,"spins":0,"shazams":2},{"name":"Germany","plays":134,"monthly":2,"spins":0,"shazams":7},{"name":"India","plays":131,"monthly":1,"spins":0,"shazams":1},{"name":"Australia","plays":120,"monthly":2,"spins":0,"shazams":4},{"name":"Mexico","plays":108,"monthly":2,"spins":0,"shazams":1},{"name":"Netherlands","plays":93,"monthly":1,"spins":0,"shazams":4},{"name":"Nigeria","plays":84,"monthly":2,"spins":0,"shazams":8},{"name":"Brazil","plays":78,"monthly":2,"spins":0,"shazams":3},{"name":"Italy","plays":73,"monthly":2,"spins":0,"shazams":2},{"name":"Spain","plays":71,"monthly":2,"spins":0,"shazams":3},{"name":"South Africa","plays":66,"monthly":2,"spins":0,"shazams":8},{"name":"Belgium","plays":60,"monthly":1,"spins":0,"shazams":3},{"name":"Sweden","plays":58,"monthly":1,"spins":0,"shazams":0},{"name":"Russia","plays":55,"monthly":1,"spins":0,"shazams":1},{"name":"Switzerland","plays":54,"monthly":1,"spins":0,"shazams":0},{"name":"Israel","plays":52,"monthly":1,"spins":0,"shazams":1},{"name":"Kenya","plays":50,"monthly":1,"spins":0,"shazams":4},{"name":"New Zealand","plays":45,"monthly":1,"spins":0,"shazams":0},{"name":"Poland","plays":45,"monthly":1,"spins":0,"shazams":0},{"name":"Ghana","plays":43,"monthly":1,"spins":0,"shazams":8},{"name":"Ireland","plays":41,"monthly":1,"spins":0,"shazams":2},{"name":"United Arab Emirates","plays":37,"monthly":1,"spins":0,"shazams":2},{"name":"Philippines","plays":37,"monthly":1,"spins":0,"shazams":1},{"name":"Norway","plays":33,"monthly":1,"spins":0,"shazams":0},{"name":"Portugal","plays":32,"monthly":1,"spins":0,"shazams":0},{"name":"Singapore","plays":31,"monthly":1,"spins":0,"shazams":1},{"name":"Hong Kong","plays":26,"monthly":1,"spins":0,"shazams":0},{"name":"Thailand","plays":26,"monthly":1,"spins":0,"shazams":1},{"name":"Czech Republic","plays":25,"monthly":1,"spins":0,"shazams":0},{"name":"Turkey","plays":25,"monthly":1,"spins":0,"shazams":0},{"name":"Austria","plays":24,"monthly":1,"spins":0,"shazams":0},{"name":"Argentina","plays":23,"monthly":1,"spins":0,"shazams":0},{"name":"Romania","plays":23,"monthly":1,"spins":0,"shazams":0},{"name":"Colombia","plays":22,"monthly":1,"spins":0,"shazams":0},{"name":"Denmark","plays":22,"monthly":1,"spins":0,"shazams":1},{"name":"South Korea","plays":21,"monthly":1,"spins":0,"shazams":0},{"name":"Finland","plays":20,"monthly":1,"spins":0,"shazams":0},{"name":"Indonesia","plays":20,"monthly":1,"spins":0,"shazams":0},{"name":"Saudi Arabia","plays":19,"monthly":1,"spins":0,"shazams":0},{"name":"Chile","plays":18,"monthly":1,"spins":0,"shazams":0},{"name":"Peru","plays":18,"monthly":1,"spins":0,"shazams":0},{"name":"Taiwan","plays":18,"monthly":1,"spins":0,"shazams":0},{"name":"Vietnam","plays":18,"monthly":1,"spins":0,"shazams":0},{"name":"Dominican Republic","plays":17,"monthly":1,"spins":0,"shazams":0},{"name":"Hungary","plays":17,"monthly":1,"spins":0,"shazams":0},{"name":"Qatar","plays":17,"monthly":1,"spins":0,"shazams":0},{"name":"Greece","plays":16,"monthly":1,"spins":0,"shazams":0},{"name":"Kuwait","plays":16,"monthly":1,"spins":0,"shazams":0},{"name":"Pakistan","plays":16,"monthly":1,"spins":0,"shazams":0},{"name":"Ukraine","plays":16,"monthly":1,"spins":0,"shazams":0},{"name":"China mainland","plays":15,"monthly":1,"spins":0,"shazams":0},{"name":"Iraq","plays":15,"monthly":1,"spins":0,"shazams":0},{"name":"Malaysia","plays":15,"monthly":1,"spins":0,"shazams":0},{"name":"Morocco","plays":15,"monthly":1,"spins":0,"shazams":0},{"name":"Puerto Rico","plays":15,"monthly":1,"spins":0,"shazams":0},{"name":"Bulgaria","plays":14,"monthly":1,"spins":0,"shazams":0},{"name":"Costa Rica","plays":14,"monthly":1,"spins":0,"shazams":0},{"name":"Algeria","plays":13,"monthly":1,"spins":0,"shazams":0},{"name":"Egypt","plays":13,"monthly":1,"spins":0,"shazams":0},{"name":"Slovakia","plays":13,"monthly":1,"spins":0,"shazams":0},{"name":"Tunisia","plays":13,"monthly":1,"spins":0,"shazams":0},{"name":"Jamaica","plays":12,"monthly":1,"spins":0,"shazams":1},{"name":"Serbia","plays":12,"monthly":1,"spins":0,"shazams":0},{"name":"Uruguay","plays":12,"monthly":1,"spins":0,"shazams":0},{"name":"Georgia","plays":11,"monthly":1,"spins":0,"shazams":0},{"name":"Lebanon","plays":11,"monthly":1,"spins":0,"shazams":0},{"name":"Sri Lanka","plays":10,"monthly":1,"spins":0,"shazams":0},{"name":"Armenia","plays":9,"monthly":1,"spins":0,"shazams":0},{"name":"Ecuador","plays":9,"monthly":1,"spins":0,"shazams":0},{"name":"Panama","plays":9,"monthly":1,"spins":0,"shazams":0},{"name":"Bolivia","plays":8,"monthly":1,"spins":0,"shazams":0},{"name":"Guatemala","plays":8,"monthly":1,"spins":0,"shazams":0},{"name":"Honduras","plays":8,"monthly":1,"spins":0,"shazams":0},{"name":"Paraguay","plays":8,"monthly":1,"spins":0,"shazams":0},{"name":"Belarus","plays":7,"monthly":1,"spins":0,"shazams":0},{"name":"El Salvador","plays":6,"monthly":1,"spins":0,"shazams":0},{"name":"Lithuania","plays":6,"monthly":1,"spins":0,"shazams":0},{"name":"Moldova","plays":6,"monthly":1,"spins":0,"shazams":0},{"name":"Uganda","plays":6,"monthly":1,"spins":0,"shazams":0},{"name":"Azerbaijan","plays":5,"monthly":1,"spins":0,"shazams":0},{"name":"Benin","plays":5,"monthly":1,"spins":0,"shazams":0},{"name":"Ivory Coast","plays":5,"monthly":1,"spins":0,"shazams":0},{"name":"Oman","plays":5,"monthly":1,"spins":0,"shazams":0},{"name":"Tanzania","plays":5,"monthly":1,"spins":0,"shazams":0},{"name":"Macedonia","plays":4,"monthly":1,"spins":0,"shazams":0},{"name":"Nicaragua","plays":4,"monthly":1,"spins":0,"shazams":0},{"name":"Zimbabwe","plays":4,"monthly":1,"spins":0,"shazams":0},{"name":"Bosnia and Herzegovina","plays":3,"monthly":1,"spins":0,"shazams":0},{"name":"Jordan","plays":3,"monthly":1,"spins":0,"shazams":0},{"name":"Kyrgyzstan","plays":3,"monthly":1,"spins":0,"shazams":0},{"name":"Nepal","plays":3,"monthly":1,"spins":0,"shazams":0},{"name":"Zambia","plays":3,"monthly":1,"spins":0,"shazams":0},{"name":"Angola","plays":2,"monthly":1,"spins":0,"shazams":0},{"name":"Iceland","plays":2,"monthly":1,"spins":0,"shazams":0},{"name":"Luxembourg","plays":2,"monthly":1,"spins":0,"shazams":0},{"name":"Montenegro","plays":2,"monthly":1,"spins":0,"shazams":0},{"name":"Mozambique","plays":2,"monthly":1,"spins":0,"shazams":0},{"name":"Mali","plays":1,"monthly":1,"spins":0,"shazams":0},{"name":"Namibia","plays":1,"monthly":1,"spins":0,"shazams":0},{"name":"Slovakia","plays":1,"monthly":1,"spins":0,"shazams":0},{"name":"St. Vincent and The Grenadines","plays":1,"monthly":1,"spins":0,"shazams":0},{"name":"Trinidad and Tobago","plays":1,"monthly":1,"spins":0,"shazams":0}];
+/* combined headline numbers from your screenshots */
+const TOTALS = { spotify:209881, apple:33499, youtube:198170, spins:7000 };
+TOTALS.all = TOTALS.spotify + TOTALS.apple + TOTALS.youtube;
 
 /* ========= UTIL ========= */
 const $=s=>document.querySelector(s);
 const fmt=n=>Number(n||0).toLocaleString();
 function hslFor(name){let h=0;for(let i=0;i<name.length;i++)h=(h*31+name.charCodeAt(i))%360;return`hsl(${h} 100% 60%)`;}
 
-/* ========= QUESTIONS ========= */
+/* ========= EASY QUIZ ========= */
 const bioQs = [
   {q:"What’s my favorite color?", o:["Pink","Blue","Gold","Green"], a:"Pink"},
-  {q:"What group was my dad in?", o:["The Golden Sons","The Temptations","The Clark Sisters","Take 6"], a:"The Golden Sons"},
   {q:"Where am I from?", o:["Brooklyn & Harlem","Los Angeles","London","Atlanta"], a:"Brooklyn & Harlem"},
-  {q:"What was my YouTube alias?", o:["Origsupawoman","SuperShauny","PinkQueen","GoldenVoice"], a:"Origsupawoman"},
-  {q:"Where did I perform and almost place?", o:["Amateur Night at the Apollo","The Voice","Star Search","Showtime at the Apollo"], a:"Amateur Night at the Apollo"}
+  {q:"My old YouTube alias was…", o:["Origsupawoman","SuperShauny","PinkQueen","GoldenVoice"], a:"Origsupawoman"}
 ];
 
-function statsQsFromData(){
-  const sorted=[...COUNTRIES].sort((a,b)=>b.streams-a.streams);
-  const [top, second, third] = sorted;
-  const totalStreams = sorted.reduce((s,d)=>s+d.streams,0)||1;
-  const shareTop = Math.round((top.streams/totalStreams)*100);
-  const share2 = Math.round((second.streams/totalStreams)*100);
-
+function statsQs(){
+  const sorted=[...REGIONS].sort((a,b)=>b.plays-a.plays);
+  const top = sorted[0].name;
+  const second = sorted[1].name;
   return [
-    { q:"Which region has the MOST plays?", o:[top.name, second.name, third.name, "Germany"], a:top.name },
-    { q:`About what share of all plays come from ${top.name}?`, o:[`${shareTop}%`, `${Math.max(5,shareTop-10)}%`, `${Math.min(95,shareTop+10)}%`, `${Math.max(1,shareTop-20)}%`], a:`${shareTop}%` },
-    { q:"How many regions appear on the Neon Map?", o:[String(COUNTRIES.length), String(COUNTRIES.length-2), String(COUNTRIES.length+2), "25"], a:String(COUNTRIES.length) },
-    { q:`Which region is SECOND by plays?`, o:[second.name, third.name, top.name, "Australia"], a:second.name },
-    { q:"Roughly how many total plays are shown (all platforms)?", o:[fmt(TOTALS.plays), fmt(TOTALS.plays-50000), fmt(TOTALS.plays+50000), fmt(100000)], a:fmt(TOTALS.plays) },
-    { q:`Whose share is closer to ${share2}%?`, o:[second.name, top.name, third.name, "Brazil"], a:second.name },
+    { q:"Which region has the MOST plays?", o:[top, second, "Brazil", "Germany"], a: top },
+    { q:"About how many Apple Music plays do I have (all-time)?", o:[fmt(33000), fmt(5000), fmt(120000), fmt(900000)], a: fmt(33000) },
+    { q:"How many regions have streamed my music?", o:[String(REGIONS.length), "12", "50", "110"], a: String(REGIONS.length) },
+    { q:"Which of these is a place my music reached?", o:[ "Nepal", "Antarctica", "Mars", "Westeros" ], a:"Nepal" }
   ];
 }
-
-const QUIZ = [...bioQs, ...statsQsFromData()];
+const QUIZ = [...bioQs, ...statsQs()];
 
 /* ========= GAME STATE ========= */
 const qEl=$("#question"), answersEl=$("#answers"), resEl=$("#result");
-const qNumEl=$("#qNum"), qTotalEl=$("#qTotal"), scoreEl=$("#score"), streakEl=$("#streak");
-const ring=$("#ring"), tEl=$("#t"), beam=$("#beam");
-const lifelineBtn = $("#lifeline5050");
+const qNumEl=document.getElementById("qNum"), qTotalEl=document.getElementById("qTotal"),
+      scoreEl=document.getElementById("score"), streakEl=document.getElementById("streak"),
+      ring=document.getElementById("ring"), tEl=document.getElementById("t"), beam=document.getElementById("beam"),
+      lifelineBtn=document.getElementById("lifeline5050");
 
 let qIdx=0, score=0, streak=1, locked=false;
-let interval=null, timeMax=20, timeLeft=timeMax, used5050=false;
+let interval=null, timeMax=18, timeLeft=timeMax, used5050=false;
 
 qTotalEl.textContent = QUIZ.length;
 
@@ -278,53 +267,37 @@ function renderQ(){
   resetTimer();
   lifelineBtn.disabled = used5050;
 }
-
 function pick(choice, btn){
   if(locked) return; locked=true;
   stopTimer();
 
   const correct = (choice===QUIZ[qIdx].a);
-  const timeBonus = Math.max(0, timeLeft);        // faster = more
+  const timeBonus = Math.max(0, timeLeft);
   if(correct){
-    const delta = Math.round(50 + timeBonus*5*streak); // core scoring
+    const delta = Math.round(25 + timeBonus*3*streak);
     score += delta; streak += 1;
     btn.classList.add('ok');
-    resEl.textContent = `✓ Correct! +${delta} (x${streak-1} streak)`;
+    resEl.innerHTML = `✓ Nice! +${delta}`;
   }else{
     streak = 1;
     btn.classList.add('nope');
-    resEl.textContent = `✗ Not it. Answer: ${QUIZ[qIdx].a}`;
-    // show the correct one
+    resEl.innerHTML = `✗ The answer is <b>${QUIZ[qIdx].a}</b>`;
     [...answersEl.children].forEach(b=>{ if(b.textContent===QUIZ[qIdx].a) b.classList.add('ok'); });
   }
   scoreEl.textContent = score; streakEl.textContent = streak;
-
-  // advance with a tiny pause
   setTimeout(()=>{ qIdx++; updateBeam(); renderQ(); }, 520);
 }
 
 /* ========= TIMER ========= */
 function resetTimer(){
-  timeLeft=timeMax;
-  updateRing();
-  stopTimer();
-  interval=setInterval(()=>{
-    timeLeft -= 1;
-    updateRing();
-    if(timeLeft<=0){ stopTimer(); autoFail(); }
-  },1000);
+  timeLeft=timeMax; updateRing(); stopTimer();
+  interval=setInterval(()=>{ timeLeft -= 1; updateRing(); if(timeLeft<=0){ stopTimer(); autoFail(); } },1000);
 }
 function stopTimer(){ if(interval){ clearInterval(interval); interval=null; } }
-function updateRing(){
-  const deg = (timeLeft/timeMax)*360;
-  ring.style.setProperty('--deg', deg+'deg');
-  tEl.textContent = Math.max(0,timeLeft);
-}
+function updateRing(){ const deg=(timeLeft/timeMax)*360; ring.style.setProperty('--deg',deg+'deg'); tEl.textContent=Math.max(0,timeLeft); }
 function autoFail(){
-  if(locked) return;
-  locked=true; streak=1;
-  resEl.textContent = `⏱️ Time’s up! Answer: ${QUIZ[qIdx].a}`;
-  // highlight correct
+  if(locked) return; locked=true; streak=1;
+  resEl.innerHTML = `⏱️ Time’s up! Answer: <b>${QUIZ[qIdx].a}</b>`;
   [...answersEl.children].forEach(b=>{ if(b.textContent===QUIZ[qIdx].a) b.classList.add('ok'); else b.classList.add('dim'); });
   setTimeout(()=>{ qIdx++; updateBeam(); renderQ(); }, 650);
 }
@@ -332,13 +305,12 @@ function autoFail(){
 /* ========= STREAK/BEAM ========= */
 function updateBeam(){ beam.style.setProperty('--p', qIdx/QUIZ.length); }
 
-/* ========= LIFELINES ========= */
+/* ========= LIFELINE ========= */
 lifelineBtn.addEventListener('click',()=>{
   if(used5050 || locked) return;
   used5050=true;
   const q = QUIZ[qIdx];
   const wrong = [...answersEl.children].filter(b=>b.textContent!==q.a);
-  // hide two random wrongs
   for(let i=0;i<2 && wrong.length;i++){
     const idx = Math.floor(Math.random()*wrong.length);
     wrong[idx].classList.add('dim'); wrong[idx].disabled=true;
@@ -347,58 +319,87 @@ lifelineBtn.addEventListener('click',()=>{
   lifelineBtn.disabled = true;
 });
 
-/* ========= MAP MODAL ========= */
+/* ========= MAP ========= */
 let map, mapReady=false;
-$("#openMap").addEventListener('click',()=>{
-  $("#mapModal").classList.add('open');
+document.getElementById("openMap").addEventListener('click',()=>{
+  document.getElementById("mapModal").classList.add('open');
   setTimeout(()=>{ if(!mapReady){ initMap(); mapReady=true; } else { map.invalidateSize(); } }, 30);
 });
-$("#closeMap").addEventListener('click',()=>$("#mapModal").classList.remove('open'));
+document.getElementById("closeMap").addEventListener('click',()=>document.getElementById("mapModal").classList.remove('open'));
 
 function initMap(){
+  const TOP10 = [
+    { name:"United States", plays:165674, coords:[37.0902,-95.7129] },
+    { name:"Finland", plays:55130, coords:[64.0,26.0] },
+    { name:"India", plays:52048, coords:[22.9734,78.6569] },
+    { name:"Cambodia", plays:16128, coords:[12.5657,104.991] },
+    { name:"Indonesia", plays:13315, coords:[-2.5489,118.0149] },
+    { name:"Bangladesh", plays:12836, coords:[23.685,90.3563] },
+    { name:"Nepal", plays:11955, coords:[28.3949,84.124] },
+    { name:"Philippines", plays:11055, coords:[12.8797,121.774] },
+    { name:"United Kingdom", plays:7849, coords:[55.3781,-3.4360] },
+    { name:"Sri Lanka", plays:7162, coords:[7.8731,80.7718] }
+  ];
   map=L.map('mapBox',{zoomControl:true,minZoom:2,maxZoom:6,worldCopyJump:true}).setView([20,10],2);
   L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png',{attribution:'© OSM & Carto',maxZoom:6}).addTo(map);
   const markers=[];
-  COUNTRIES.forEach(d=>{
+  TOP10.forEach(d=>{
     const icon=L.divIcon({html:`<span class="neon-dot" style="--c:${hslFor(d.name)}"></span>`,className:'leaflet-div-icon',iconSize:[18,18],iconAnchor:[9,9]});
-    const m=L.marker(d.coords,{icon}).addTo(map).bindPopup(`<b>${d.name}</b><br/>${fmt(d.streams)} plays`);
+    const m=L.marker(d.coords,{icon}).addTo(map).bindPopup(`<b>${d.name}</b><br/>${fmt(d.plays)} all-time plays`);
     markers.push(m);
   });
-  if(markers.length){ const g=L.featureGroup(markers); map.fitBounds(g.getBounds(),{padding:[40,40]}); }
+  if(markers.length){ const g=L.featureGroup(markers); map.fitBounds(g.getBounds(),{padding:[30,30]}); }
 }
 
-/* ========= STATS MODAL ========= */
+/* ========= STATS (ALL REGIONS) ========= */
 let statsBuilt=false;
-$("#openStats").addEventListener('click',()=>{
-  $("#statsModal").classList.add('open');
+document.getElementById("openStats").addEventListener('click',()=>{
+  document.getElementById("statsModal").classList.add('open');
   if(!statsBuilt){ buildStats(); drawDonut(); statsBuilt=true; }
 });
-$("#closeStats").addEventListener('click',()=>$("#statsModal").classList.remove('open'));
+document.getElementById("closeStats").addEventListener('click',()=>document.getElementById("statsModal").classList.remove('open'));
 
 function buildStats(){
-  const k=(lab,val)=>`<div class="kpi"><div class="lab">${lab}</div><div class="val">${fmt(val)}</div></div>`;
-  $("#kpis").innerHTML = k('Total Plays',TOTALS.plays)+k('Radio Spins',TOTALS.spins)+k('Regions',COUNTRIES.length)+k('YouTube Views',198170)+k('Spotify Plays',209881);
+  const k = (lab,val)=>`<div class="kpi"><div class="lab">${lab}</div><div class="val">${fmt(val)}</div></div>`;
+  document.getElementById("kpis").innerHTML =
+    k('Total Plays (All)', TOTALS.all) +
+    k('Spotify', TOTALS.spotify) +
+    k('Apple Music', TOTALS.apple) +
+    k('YouTube', TOTALS.youtube) +
+    k('Radio Spins', TOTALS.spins);
 
-  const top=[...COUNTRIES].sort((a,b)=>b.streams-a.streams).slice(0,10);
-  const max=Math.max(...top.map(d=>d.streams),1);
-  $("#rows").innerHTML = top.map(d=>{
-    const w=(d.streams/max)*100;
-    return `<div class="row">
-      <div class="cell">${d.name}</div>
-      <div class="cell bar"><div class="fill" style="--w:${w}%"><span>${fmt(d.streams)}</span></div></div>
-      <div class="cell">—</div><div class="cell">—</div>
-    </div>`;
-  }).join('');
+  // searchable full list
+  const container = document.getElementById('regionTable');
+  const header = document.createElement('div');
+  header.className='row head';
+  header.innerHTML = '<div>Region</div><div>Plays</div><div>Monthly</div><div>Spins</div><div>Shazams</div>';
+  container.appendChild(header);
+
+  const body = document.createElement('div'); container.appendChild(body);
+
+  function renderRows(filter=''){
+    body.innerHTML='';
+    const rows = REGIONS.filter(r=>r.name.toLowerCase().includes(filter.toLowerCase()))
+                        .sort((a,b)=>b.plays-a.plays);
+    rows.forEach(r=>{
+      const row=document.createElement('div');
+      row.className='row';
+      row.innerHTML = `<div>${r.name}</div><div>${fmt(r.plays)}</div><div>${fmt(r.monthly)}</div><div>${fmt(r.spins)}</div><div>${fmt(r.shazams)}</div>`;
+      body.appendChild(row);
+    });
+  }
+  renderRows();
+  document.getElementById('searchInput').addEventListener('input',e=>renderRows(e.target.value));
 }
+
 function drawDonut(){
-  const sorted=[...COUNTRIES].sort((a,b)=>b.streams-a.streams);
-  const top3=sorted.slice(0,3), total=sorted.reduce((s,d)=>s+d.streams,0)||1;
+  const sorted=[...REGIONS].sort((a,b)=>b.plays-a.plays);
+  const top3=sorted.slice(0,3), total=sorted.reduce((s,d)=>s+d.plays,0)||1;
   let acc=0,stops=[];
-  top3.forEach(d=>{const share=d.streams/total;const a0=acc*360,a1=(acc+=share)*360;stops.push(`${hslFor(d.name)} ${a0}deg ${a1}deg`);});
-  stops.push(`${'var(--other)'} ${acc*360}deg 360deg`);
-  $("#pie").style.background=`conic-gradient(${stops.join(',')})`;
-  $("#legend").innerHTML = top3.map(d=>{
-    const pct=((d.streams/total)*100).toFixed(1);
+  top3.forEach(d=>{const share=d.plays/total;const a0=acc*360,a1=(acc+=share)*360;stops.push(`${hslFor(d.name)} ${a0}deg ${a1}deg`);});
+  document.getElementById("pie").style.background=`conic-gradient(${stops.join(',')}, var(--other) ${acc*360}deg 360deg)`;
+  document.getElementById("legend").innerHTML = top3.map(d=>{
+    const pct=((d.plays/total)*100).toFixed(1);
     return `<div class="legend-item"><span class="swatch" style="background:${hslFor(d.name)}"></span><span>${d.name}</span><b>${pct}%</b></div>`;
   }).join('') + `<div class="legend-item"><span class="swatch" style="background:var(--other)"></span><span>Other</span><b>${((1-acc)*100).toFixed(1)}%</b></div>`;
 }
@@ -408,18 +409,21 @@ function finish(){
   stopTimer();
   qEl.textContent = "Broadcast Complete!";
   answersEl.innerHTML='';
-  const passed = (score >= 3*50); // about 3 correct at baseline
-  resEl.innerHTML = `Final Score: <b>${score}</b> • ${passed?'Unlocked!':'Try again for the EP'}`;
-  const el = passed ? Object.assign(document.createElement('a'),{href:'music',target:'_blank',textContent:'Unlock EP',className:'cta'})
-                    : Object.assign(document.createElement('a'),{href:'#',textContent:'Restart',className:'cta',onclick:(e)=>{e.preventDefault();restart();}});
+  const passed = (score >= 3*25);
+  resEl.innerHTML = `Final Score: <b>${score}</b> — ${passed?'Unlocked!':'Try again for the EP'}`;
+  const el = Object.assign(document.createElement('a'),{href: passed ? 'music' : '#',target: passed ? '_blank' : '_self',
+                 textContent: passed ? 'Unlock EP' : 'Restart',className:'cta'});
+  if(!passed){ el.onclick=(e)=>{e.preventDefault(); restart();}; }
   answersEl.appendChild(el);
 }
 function restart(){ qIdx=0; score=0; streak=1; used5050=false; scoreEl.textContent=0; streakEl.textContent=1; updateBeam(); renderQ(); }
 
 /* start */
+function updateBeam(){ beam.style.setProperty('--p', qIdx/QUIZ.length); }
 updateBeam(); renderQ();
 </script>
 </body>
 </html>
+
 
 
