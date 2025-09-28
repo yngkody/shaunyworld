@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>SHAUNY • Neon TV — Wallflower Circuit</title>
+<title>SHAUNY • Channel 4 LIVE — Wallflower Circuit</title>
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="anonymous"></script>
@@ -11,104 +11,106 @@
 
 <style>
 :root{
-  --bg:#0b0b12;--bezel:#0a0a12;--face:#1d1d2a;--glass:#0f0f16;
-  --ink:#f2f1ff;--muted:#a6a3c9;--line:rgba(255,255,255,.10);
-  --lilac:#a86cff;--aqua:#50e3ff;--pink:#ff8bd4;--yellow:#ffe980
+  --bg:#0b0b12;--bezel:#0a0a12;--line:rgba(255,255,255,.10);
+  --glass:#0f0f16;--ink:#f2f1ff;--muted:#a6a3c9;
+  --pink:#ff8bd4;--aqua:#50e3ff;--lilac:#a86cff;--yellow:#ffe980;--other:#2b2b40
 }
 
 /* Page */
 html,body{margin:0;height:100%;background:radial-gradient(1200px at 50% -10%,#141425,#090912 70%);color:var(--ink);
   font-family:ui-sans-serif,system-ui,Inter,Segoe UI,Roboto,Arial}
 
-/* TV */
+/* TV shell */
 .tv-wrap{display:grid;place-items:center;min-height:100dvh;padding:18px}
 .tv{
-  width:min(1200px,96vw);aspect-ratio:16/9;position:relative;
-  border-radius:28px;background:linear-gradient(160deg,#2a2a3c,#151522);
-  box-shadow:
-    0 40px 120px rgba(0,0,0,.6),
-    inset 0 0 0 14px var(--bezel),
-    inset 0 0 0 16px rgba(255,255,255,.05);
+  width:min(1200px,96vw);aspect-ratio:16/9;position:relative;border-radius:32px;
+  background:linear-gradient(160deg,#2a2a3c,#151522);
+  box-shadow:0 40px 120px rgba(0,0,0,.6),
+             inset 0 0 0 18px var(--bezel),
+             inset 0 0 0 20px rgba(255,255,255,.06)
 }
-.tv:before{/* ridge */
-  content:"";position:absolute;inset:8px;border-radius:24px;
-  background:linear-gradient(180deg,#26263a,#0e0e18);
-  box-shadow:inset 0 0 0 1px rgba(255,255,255,.06);
-}
-.screen{
-  position:absolute;inset:22px;border-radius:20px;background:var(--glass);overflow:hidden;
-  box-shadow:inset 0 0 0 1px rgba(255,255,255,.07), inset 0 50px 80px rgba(255,255,255,.04);
-}
-.screen:after{/* scanlines */
-  content:"";position:absolute;inset:0;pointer-events:none;opacity:.15;mix-blend-mode:overlay;
-  background:repeating-linear-gradient(to bottom,rgba(255,255,255,.5) 0 1px,transparent 1px 3px)
-}
+.tv:before{content:"";position:absolute;inset:12px;border-radius:28px;
+  background:linear-gradient(180deg,#24243a,#0e0e18);box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
+.screen{position:absolute;inset:28px;border-radius:20px;overflow:hidden;background:var(--glass);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.07)}
+.screen:after{content:"";position:absolute;inset:0;pointer-events:none;opacity:.15;mix-blend-mode:overlay;
+  background:repeating-linear-gradient(to bottom,rgba(255,255,255,.25) 0 1px,transparent 1px 3px)}
 
-/* Top HUD & bottom controls */
+/* Channel overlay HUD (inside the screen so no clipping) */
 .hud{
-  position:absolute;left:28px;right:28px;top:28px;z-index:5;
-  display:flex;gap:10px;align-items:center;padding:8px 10px;
-  border:1px solid var(--line);border-radius:12px;background:rgba(20,20,35,.55);backdrop-filter:blur(6px)
+  position:absolute;left:10px;right:10px;top:10px;z-index:5;display:flex;align-items:center;gap:10px;
+  background:rgba(14,14,24,.7);backdrop-filter:blur(6px);border:1px solid var(--line);border-radius:10px;padding:6px 10px
 }
+.badge{display:inline-flex;align-items:center;gap:6px;padding:3px 8px;border-radius:999px;border:1px solid var(--line);
+  font-family:monospace;background:#0e0e18;color:#cfd2ff}
+.dot{width:8px;height:8px;border-radius:50%;background:#ff4d6d;box-shadow:0 0 8px #ff4d6d}
 .hud .brand{font-weight:800;letter-spacing:.12em;font-size:12px}
-.hud .chip{font-family:monospace;font-size:12px;padding:4px 8px;border-radius:999px;background:#0e0e18;border:1px solid var(--line);color:#cdd1ff}
 .hud .spacer{flex:1}
-.controls{
-  position:absolute;left:28px;right:28px;bottom:28px;z-index:5;
-  display:flex;justify-content:center;gap:10px
-}
-.btn{
-  background:linear-gradient(180deg,rgba(168,108,255,.25),rgba(80,227,255,.18));
-  border:1px solid var(--line);color:var(--ink);border-radius:999px;
-  padding:8px 12px;font-size:12px;cursor:pointer
-}
 
-/* Game card */
-.stage{position:absolute;inset:22px;display:grid;place-items:center;padding:10px}
-.card{
-  width:min(980px,92%);max-width:980px;margin:auto;padding:18px;border-radius:18px;
+/* Stage + progress beam */
+.stage{position:absolute;inset:0;display:grid;place-items:center;padding:56px 16px 24px}
+.beam{position:absolute;left:0;right:0;top:48px;height:3px;background:linear-gradient(90deg,var(--pink),var(--aqua));
+  box-shadow:0 0 14px var(--pink),0 0 26px var(--aqua);transform-origin:left;transform:scaleX(var(--p,0));opacity:.7}
+
+/* Card */
+.card{position:relative;width:min(980px,92%);max-width:980px;margin:auto;padding:20px;border-radius:18px;
   background:rgba(0,0,0,.78);text-align:center;font-family:'Orbitron',sans-serif;
-  border:2px solid var(--pink);box-shadow:0 0 20px var(--pink),0 0 45px var(--aqua)
-}
-.card h1{margin:6px 0 12px;font-size:clamp(22px,3.8vw,36px);color:var(--pink);
-  text-shadow:0 0 14px var(--pink),0 0 32px var(--aqua)}
-#question{font-size:clamp(15px,2.6vw,22px);margin:8px 0 14px}
-#answers{display:grid;grid-template-columns:repeat(2,minmax(160px,1fr));gap:12px}
+  border:2px solid var(--pink);box-shadow:0 0 20px var(--pink),0 0 45px var(--aqua)}
+.card h1{margin:2px 0 4px;font-size:clamp(22px,3.6vw,34px);color:var(--pink);text-shadow:0 0 14px var(--pink),0 0 32px var(--aqua)}
+.subtitle{margin:0 0 10px;color:#dcdafc;opacity:.9}
+
+/* Timer ring */
+.ring{--deg:0deg;position:absolute;right:12px;top:12px;width:56px;height:56px;border-radius:50%;
+  background:conic-gradient(var(--aqua) var(--deg), rgba(255,255,255,.06) 0);
+  display:grid;place-items:center;border:1px solid var(--line);box-shadow:inset 0 0 0 2px rgba(0,0,0,.6)}
+.ring span{display:inline-block;background:#0e0e18;border:1px solid var(--line);width:40px;height:40px;border-radius:50%;
+  line-height:40px;text-align:center;font-weight:800}
+
+/* Q/A */
+#question{font-size:clamp(16px,2.4vw,22px);margin:12px 0 14px}
+#answers{display:grid;grid-template-columns:repeat(2,minmax(180px,1fr));gap:12px}
 @media (max-width:640px){#answers{grid-template-columns:1fr}}
-#answers button{
-  background:linear-gradient(90deg,var(--pink),var(--aqua));border:0;border-radius:12px;
-  min-height:46px;padding:12px;font-weight:800;color:#000;text-transform:uppercase;cursor:pointer;
-  box-shadow:0 0 10px var(--pink),0 0 20px var(--aqua);transition:transform .18s,box-shadow .18s
+.answer{
+  background:linear-gradient(90deg,var(--pink),var(--aqua));border:0;border-radius:12px;min-height:48px;padding:12px;
+  font-weight:800;color:#000;text-transform:uppercase;cursor:pointer;
+  box-shadow:0 0 10px var(--pink),0 0 20px var(--aqua);transition:transform .15s,box-shadow .15s,filter .15s
 }
-#answers button:hover{transform:scale(1.03);box-shadow:0 0 18px var(--pink),0 0 36px var(--aqua)}
+.answer:hover{transform:translateY(-1px);filter:brightness(1.03)}
+.answer.dim{filter:saturate(.1) brightness(.6);pointer-events:none}
+
+/* Meta row */
 .meta{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:10px}
-.meta .pill{background:#0e0e18;border:1px solid var(--line);border-radius:999px;padding:6px 10px}
-#result{margin-top:10px;min-height:24px;color:var(--yellow);text-shadow:0 0 10px var(--pink)}
-.cta{
-  display:inline-block;margin-top:12px;padding:10px 20px;border-radius:12px;
-  background:linear-gradient(90deg,var(--pink),var(--aqua));color:#000;font-weight:800;text-decoration:none
-}
+.pill{background:#0e0e18;border:1px solid var(--line);border-radius:999px;padding:6px 10px}
 .icon-btn{background:#0e0e18;border:1px solid var(--line);color:#fff;border-radius:999px;padding:6px 12px;cursor:pointer}
+
+/* Feedback + CTA */
+#result{margin-top:10px;min-height:24px;color:var(--yellow);text-shadow:0 0 10px var(--pink)}
+.cta{display:inline-block;margin-top:12px;padding:10px 20px;border-radius:12px;background:linear-gradient(90deg,var(--pink),var(--aqua));
+  color:#000;font-weight:800;text-decoration:none}
+
+/* Animations */
+@keyframes correctPulse{0%{box-shadow:0 0 10px var(--pink),0 0 20px var(--aqua)}100%{box-shadow:0 0 20px var(--pink),0 0 40px var(--aqua)}}
+.ok{animation:correctPulse .35s ease-out}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.nope{animation:shake .25s linear}
 
 /* Modals (Map + Stats) */
 .modal{position:absolute;inset:0;display:none;align-items:center;justify-content:center;z-index:6}
 .modal.open{display:flex}
-.modal .panel{
-  width:min(1100px,94%);max-height:86dvh;overflow:auto;padding:14px;border-radius:16px;
-  background:linear-gradient(180deg,#1c1c2a,#12121f);border:1px solid var(--line);box-shadow:0 0 28px rgba(0,0,0,.6)
-}
-.modal .head{display:flex;gap:10px;align-items:center;margin-bottom:10px}
-.modal .head h3{margin:0;font-size:16px;letter-spacing:.08em}
-.modal .head .spacer{flex:1}
-.modal .head .icon-btn{padding:6px 10px}
-
+.panel{width:min(1100px,94%);max-height:86dvh;overflow:auto;padding:14px;border-radius:16px;
+  background:linear-gradient(180deg,#1c1c2a,#12121f);border:1px solid var(--line);box-shadow:0 0 28px rgba(0,0,0,.6)}
+.head{display:flex;gap:10px;align-items:center;margin-bottom:10px}
+.head h3{margin:0;font-size:16px;letter-spacing:.08em}
+.head .spacer{flex:1}
+.head .icon-btn{padding:6px 10px}
 #mapBox{width:100%;height:min(560px,65dvh);border:1px solid var(--line);border-radius:12px;background:#0e0e18;overflow:hidden}
 .leaflet-div-icon{background:transparent;border:none}
-.neon-dot{--c:#a86cff;width:16px;height:16px;display:block;border-radius:50%;background:var(--c);
+.neon-dot{--c:#a86cff;width:16px;height:16px;border-radius:50%;display:block;background:var(--c);
   border:2px solid rgba(255,255,255,.95);box-shadow:0 0 10px var(--c),0 0 24px var(--c),0 0 40px var(--c)}
 .leaflet-popup-content-wrapper{background:#151526;color:var(--ink);border-radius:12px;border:1px solid var(--line)}
 .leaflet-popup-tip{background:#151526}
 
+/* Stats */
 .kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:8px}
 @media (max-width:900px){.kpis{grid-template-columns:repeat(2,1fr)}}
 .kpi{background:linear-gradient(180deg,rgba(168,108,255,.08),rgba(80,227,255,.08));border:1px solid var(--line);border-radius:12px;padding:8px}
@@ -120,7 +122,6 @@ html,body{margin:0;height:100%;background:radial-gradient(1200px at 50% -10%,#14
 .cell.bar{background:rgba(255,255,255,.04);border:1px dashed var(--line);border-radius:10px;overflow:hidden}
 .fill{height:22px;background:linear-gradient(90deg,var(--lilac),var(--aqua));position:relative;width:var(--w)}
 .fill span{position:absolute;right:6px;top:50%;transform:translateY(-50%);font-weight:700;font-size:11px;color:#0f0f16}
-
 .donut{display:grid;grid-template-columns:160px 1fr;gap:14px;align-items:center;margin-top:10px}
 .pie{width:160px;height:160px;border-radius:50%;border:1px solid var(--line);position:relative}
 .pie:after{content:"";position:absolute;inset:22px;border-radius:50%;background:#151526;border:1px solid var(--line)}
@@ -133,48 +134,54 @@ html,body{margin:0;height:100%;background:radial-gradient(1200px at 50% -10%,#14
 <body>
 <div class="tv-wrap">
   <div class="tv">
-    <div class="hud">
-      <div class="brand">SHAUNY // NEON WORLD</div>
-      <span class="chip">WALLFLOWER&nbsp;CIRCUIT</span>
-      <div class="spacer"></div>
-      <span class="chip">Score 3+ to unlock the EP</span>
-    </div>
-
     <div class="screen">
+
+      <!-- CHANNEL OVERLAY -->
+      <div class="hud">
+        <div class="badge"><strong>CH4</strong> • WALLFLOWER CIRCUIT</div>
+        <div class="badge"><span class="dot"></span> LIVE</div>
+        <div class="spacer"></div>
+        <div class="badge">Score 3+ to unlock the EP</div>
+      </div>
+
+      <!-- PROGRESS BEAM -->
+      <div class="beam" id="beam"></div>
+
+      <!-- GAME -->
       <div class="stage">
         <div class="card" id="card">
-          <button id="resetBtn" class="icon-btn" style="position:absolute;right:10px;top:10px">↻ Try Again</button>
+          <div class="ring" id="ring"><span id="t">20</span></div>
           <h1>Wallflower Circuit</h1>
-          <div id="question" aria-live="polite"></div>
+          <p class="subtitle">Answer fast to boost your streak multiplier</p>
+
+          <div id="question"></div>
           <div id="answers"></div>
+
           <div class="meta">
-            <div class="pill">Q <span id="qNum">1</span> / <span id="qTotal">0</span></div>
+            <div class="pill">Q <span id="qNum">1</span>/<span id="qTotal">0</span></div>
+            <div class="pill">Streak: ×<span id="streak">1</span></div>
             <div class="pill">Score: <span id="score">0</span></div>
+            <button id="lifeline5050" class="icon-btn">🧠 50/50</button>
             <button id="openMap" class="icon-btn">🗺️ Map</button>
             <button id="openStats" class="icon-btn">📊 Stats</button>
           </div>
-          <div id="result" aria-live="polite"></div>
+
+          <div id="result"></div>
         </div>
       </div>
 
-      <!-- Map modal -->
+      <!-- MAP MODAL -->
       <div class="modal" id="mapModal" aria-modal="true" role="dialog">
         <div class="panel">
-          <div class="head">
-            <h3>Neon World Map</h3><div class="spacer"></div>
-            <button id="closeMap" class="icon-btn">Close</button>
-          </div>
+          <div class="head"><h3>Neon World Map</h3><div class="spacer"></div><button id="closeMap" class="icon-btn">Close</button></div>
           <div id="mapBox"></div>
         </div>
       </div>
 
-      <!-- Stats modal -->
+      <!-- STATS MODAL -->
       <div class="modal" id="statsModal" aria-modal="true" role="dialog">
         <div class="panel">
-          <div class="head">
-            <h3>Stats & Top Regions</h3><div class="spacer"></div>
-            <button id="closeStats" class="icon-btn">Close</button>
-          </div>
+          <div class="head"><h3>Stats & Top Regions</h3><div class="spacer"></div><button id="closeStats" class="icon-btn">Close</button></div>
           <div class="kpis" id="kpis"></div>
           <div class="headrow"><div>Region</div><div>Plays</div><div>Monthly</div><div>Shazams</div></div>
           <div class="table" id="rows"></div>
@@ -190,7 +197,7 @@ html,body{margin:0;height:100%;background:radial-gradient(1200px at 50% -10%,#14
 </div>
 
 <script>
-/* ===== DATA ===== */
+/* ========= DATA ========= */
 const COUNTRIES = [
   { name:"United States", streams:30410, coords:[37.0902,-95.7129] },
   { name:"Finland", streams:55130, coords:[64.0,26.0] },
@@ -205,12 +212,12 @@ const COUNTRIES = [
 ];
 const TOTALS = { plays: 209881 + 33499 + 198170, spins: 7000, shazams: 0 };
 
-/* ===== UTIL ===== */
-const $ = s => document.querySelector(s);
-const fmt = n => Number(n||0).toLocaleString();
-function hslFor(name){ let h=0; for(let i=0;i<name.length;i++) h=(h*31+name.charCodeAt(i))%360; return `hsl(${h} 100% 60%)`; }
+/* ========= UTIL ========= */
+const $=s=>document.querySelector(s);
+const fmt=n=>Number(n||0).toLocaleString();
+function hslFor(name){let h=0;for(let i=0;i<name.length;i++)h=(h*31+name.charCodeAt(i))%360;return`hsl(${h} 100% 60%)`;}
 
-/* ===== QUIZ DATA (bio + stats-driven) ===== */
+/* ========= QUESTIONS ========= */
 const bioQs = [
   {q:"What’s my favorite color?", o:["Pink","Blue","Gold","Green"], a:"Pink"},
   {q:"What group was my dad in?", o:["The Golden Sons","The Temptations","The Clark Sisters","Take 6"], a:"The Golden Sons"},
@@ -221,84 +228,132 @@ const bioQs = [
 
 function statsQsFromData(){
   const sorted=[...COUNTRIES].sort((a,b)=>b.streams-a.streams);
-  const top=sorted[0], second=sorted[1], third=sorted[2];
+  const [top, second, third] = sorted;
   const totalStreams = sorted.reduce((s,d)=>s+d.streams,0)||1;
   const shareTop = Math.round((top.streams/totalStreams)*100);
-
-  const names = sorted.slice(0,4).map(d=>d.name);
-  const wrongs1 = ["Brazil","Germany","Canada","Australia"].filter(x=>!names.includes(x));
+  const share2 = Math.round((second.streams/totalStreams)*100);
 
   return [
-    { q:"Which region currently has the MOST plays?",
-      o:[top.name, second.name, third.name, wrongs1[0]||"Brazil"], a: top.name },
-
-    { q:`About what share of all plays come from ${top.name}?`,
-      o:[`${shareTop}%`, `${Math.max(5,shareTop-10)}%`, `${Math.min(95,shareTop+10)}%`, `${Math.max(1,shareTop-20)}%`],
-      a:`${shareTop}%` },
-
-    { q:"How many regions are on the Neon Map?",
-      o:[String(COUNTRIES.length), String(COUNTRIES.length-2), String(COUNTRIES.length+2), "25"],
-      a:String(COUNTRIES.length) },
-
-    { q:"Roughly how many total plays (all platforms) are shown?",
-      o:[fmt(TOTALS.plays), fmt(TOTALS.plays-50000), fmt(TOTALS.plays+50000), fmt(100000)],
-      a:fmt(TOTALS.plays) }
+    { q:"Which region has the MOST plays?", o:[top.name, second.name, third.name, "Germany"], a:top.name },
+    { q:`About what share of all plays come from ${top.name}?`, o:[`${shareTop}%`, `${Math.max(5,shareTop-10)}%`, `${Math.min(95,shareTop+10)}%`, `${Math.max(1,shareTop-20)}%`], a:`${shareTop}%` },
+    { q:"How many regions appear on the Neon Map?", o:[String(COUNTRIES.length), String(COUNTRIES.length-2), String(COUNTRIES.length+2), "25"], a:String(COUNTRIES.length) },
+    { q:`Which region is SECOND by plays?`, o:[second.name, third.name, top.name, "Australia"], a:second.name },
+    { q:"Roughly how many total plays are shown (all platforms)?", o:[fmt(TOTALS.plays), fmt(TOTALS.plays-50000), fmt(TOTALS.plays+50000), fmt(100000)], a:fmt(TOTALS.plays) },
+    { q:`Whose share is closer to ${share2}%?`, o:[second.name, top.name, third.name, "Brazil"], a:second.name },
   ];
 }
 
-const quizData = [...bioQs, ...statsQsFromData()];
+const QUIZ = [...bioQs, ...statsQsFromData()];
 
-/* ===== GAME ===== */
-const qEl=$("#question"), aEl=$("#answers"), resEl=$("#result");
-const qNumEl=$("#qNum"), qTotalEl=$("#qTotal"), scoreEl=$("#score");
-let qIdx=0, score=0, locked=false;
+/* ========= GAME STATE ========= */
+const qEl=$("#question"), answersEl=$("#answers"), resEl=$("#result");
+const qNumEl=$("#qNum"), qTotalEl=$("#qTotal"), scoreEl=$("#score"), streakEl=$("#streak");
+const ring=$("#ring"), tEl=$("#t"), beam=$("#beam");
+const lifelineBtn = $("#lifeline5050");
 
-qTotalEl.textContent = quizData.length;
+let qIdx=0, score=0, streak=1, locked=false;
+let interval=null, timeMax=20, timeLeft=timeMax, used5050=false;
 
+qTotalEl.textContent = QUIZ.length;
+
+/* ========= RENDER ========= */
 function renderQ(){
-  if(qIdx>=quizData.length){ return finish(); }
-  const q=quizData[qIdx];
-  qEl.textContent = q.q;
-  aEl.innerHTML='';
-  resEl.textContent='';
-  locked=false;
-  q.o.forEach(opt=>{
-    const b=document.createElement('button'); b.textContent=opt;
-    b.onclick=()=>check(opt);
-    aEl.appendChild(b);
-  });
-  qNumEl.textContent = qIdx+1;
-}
-function check(opt){
-  if(locked) return; locked=true;
-  const correct = (opt===quizData[qIdx].a);
-  if(correct) score++;
-  scoreEl.textContent = score;
-  resEl.textContent = correct ? "✓ Correct!" : "✗ Not quite";
-  setTimeout(()=>{ qIdx++; renderQ(); }, 300);
-}
-function finish(){
-  qEl.textContent="Quiz Complete!";
-  aEl.innerHTML='';
-  const passed = score >= 3;
-  resEl.innerHTML = `You got <b>${score}</b> / ${quizData.length}. ${passed ? "Nice!" : "Try again to unlock!"}`;
-  const el = passed ? Object.assign(document.createElement('a'),{href:'music',target:'_blank',textContent:'Unlock EP',className:'cta'})
-                    : Object.assign(document.createElement('button'),{textContent:'Try Again',className:'cta',onclick:reset});
-  aEl.appendChild(el);
-}
-function reset(){ qIdx=0; score=0; scoreEl.textContent=0; renderQ(); resEl.textContent=''; }
-$("#resetBtn").addEventListener('click', reset);
+  if(qIdx>=QUIZ.length) return finish();
 
-/* ===== MAP MODAL ===== */
-let map, mapReady=false;
-$("#openMap").addEventListener('click', ()=>{
-  $("#mapModal").classList.add('open');
-  setTimeout(()=>{
-    if(!mapReady){ initMap(); mapReady=true; }
-    else { map.invalidateSize(); }
-  }, 30);
+  const q = QUIZ[qIdx];
+  qEl.textContent = q.q;
+  answersEl.innerHTML = '';
+  resEl.textContent = '';
+  locked=false;
+
+  q.o.forEach(text=>{
+    const b=document.createElement('button');
+    b.className='answer';
+    b.textContent = text;
+    b.onclick=()=>pick(text,b);
+    answersEl.appendChild(b);
+  });
+
+  qNumEl.textContent = qIdx+1;
+  resetTimer();
+  lifelineBtn.disabled = used5050;
+}
+
+function pick(choice, btn){
+  if(locked) return; locked=true;
+  stopTimer();
+
+  const correct = (choice===QUIZ[qIdx].a);
+  const timeBonus = Math.max(0, timeLeft);        // faster = more
+  if(correct){
+    const delta = Math.round(50 + timeBonus*5*streak); // core scoring
+    score += delta; streak += 1;
+    btn.classList.add('ok');
+    resEl.textContent = `✓ Correct! +${delta} (x${streak-1} streak)`;
+  }else{
+    streak = 1;
+    btn.classList.add('nope');
+    resEl.textContent = `✗ Not it. Answer: ${QUIZ[qIdx].a}`;
+    // show the correct one
+    [...answersEl.children].forEach(b=>{ if(b.textContent===QUIZ[qIdx].a) b.classList.add('ok'); });
+  }
+  scoreEl.textContent = score; streakEl.textContent = streak;
+
+  // advance with a tiny pause
+  setTimeout(()=>{ qIdx++; updateBeam(); renderQ(); }, 520);
+}
+
+/* ========= TIMER ========= */
+function resetTimer(){
+  timeLeft=timeMax;
+  updateRing();
+  stopTimer();
+  interval=setInterval(()=>{
+    timeLeft -= 1;
+    updateRing();
+    if(timeLeft<=0){ stopTimer(); autoFail(); }
+  },1000);
+}
+function stopTimer(){ if(interval){ clearInterval(interval); interval=null; } }
+function updateRing(){
+  const deg = (timeLeft/timeMax)*360;
+  ring.style.setProperty('--deg', deg+'deg');
+  tEl.textContent = Math.max(0,timeLeft);
+}
+function autoFail(){
+  if(locked) return;
+  locked=true; streak=1;
+  resEl.textContent = `⏱️ Time’s up! Answer: ${QUIZ[qIdx].a}`;
+  // highlight correct
+  [...answersEl.children].forEach(b=>{ if(b.textContent===QUIZ[qIdx].a) b.classList.add('ok'); else b.classList.add('dim'); });
+  setTimeout(()=>{ qIdx++; updateBeam(); renderQ(); }, 650);
+}
+
+/* ========= STREAK/BEAM ========= */
+function updateBeam(){ beam.style.setProperty('--p', qIdx/QUIZ.length); }
+
+/* ========= LIFELINES ========= */
+lifelineBtn.addEventListener('click',()=>{
+  if(used5050 || locked) return;
+  used5050=true;
+  const q = QUIZ[qIdx];
+  const wrong = [...answersEl.children].filter(b=>b.textContent!==q.a);
+  // hide two random wrongs
+  for(let i=0;i<2 && wrong.length;i++){
+    const idx = Math.floor(Math.random()*wrong.length);
+    wrong[idx].classList.add('dim'); wrong[idx].disabled=true;
+    wrong.splice(idx,1);
+  }
+  lifelineBtn.disabled = true;
 });
-$("#closeMap").addEventListener('click', ()=> $("#mapModal").classList.remove('open'));
+
+/* ========= MAP MODAL ========= */
+let map, mapReady=false;
+$("#openMap").addEventListener('click',()=>{
+  $("#mapModal").classList.add('open');
+  setTimeout(()=>{ if(!mapReady){ initMap(); mapReady=true; } else { map.invalidateSize(); } }, 30);
+});
+$("#closeMap").addEventListener('click',()=>$("#mapModal").classList.remove('open'));
 
 function initMap(){
   map=L.map('mapBox',{zoomControl:true,minZoom:2,maxZoom:6,worldCopyJump:true}).setView([20,10],2);
@@ -312,20 +367,20 @@ function initMap(){
   if(markers.length){ const g=L.featureGroup(markers); map.fitBounds(g.getBounds(),{padding:[40,40]}); }
 }
 
-/* ===== STATS MODAL ===== */
+/* ========= STATS MODAL ========= */
 let statsBuilt=false;
-$("#openStats").addEventListener('click', ()=>{
+$("#openStats").addEventListener('click',()=>{
   $("#statsModal").classList.add('open');
   if(!statsBuilt){ buildStats(); drawDonut(); statsBuilt=true; }
 });
-$("#closeStats").addEventListener('click', ()=> $("#statsModal").classList.remove('open'));
+$("#closeStats").addEventListener('click',()=>$("#statsModal").classList.remove('open'));
 
 function buildStats(){
-  const k = (lab,val)=>`<div class="kpi"><div class="lab">${lab}</div><div class="val">${fmt(val)}</div></div>`;
-  $("#kpis").innerHTML = k('Total Plays',TOTALS.plays) + k('Radio Spins',TOTALS.spins) + k('Regions',COUNTRIES.length) + k('YouTube Views',198170) + k('Spotify Plays',209881);
+  const k=(lab,val)=>`<div class="kpi"><div class="lab">${lab}</div><div class="val">${fmt(val)}</div></div>`;
+  $("#kpis").innerHTML = k('Total Plays',TOTALS.plays)+k('Radio Spins',TOTALS.spins)+k('Regions',COUNTRIES.length)+k('YouTube Views',198170)+k('Spotify Plays',209881);
 
   const top=[...COUNTRIES].sort((a,b)=>b.streams-a.streams).slice(0,10);
-  const max = Math.max(...top.map(d=>d.streams),1);
+  const max=Math.max(...top.map(d=>d.streams),1);
   $("#rows").innerHTML = top.map(d=>{
     const w=(d.streams/max)*100;
     return `<div class="row">
@@ -335,25 +390,36 @@ function buildStats(){
     </div>`;
   }).join('');
 }
-
 function drawDonut(){
   const sorted=[...COUNTRIES].sort((a,b)=>b.streams-a.streams);
   const top3=sorted.slice(0,3), total=sorted.reduce((s,d)=>s+d.streams,0)||1;
-  let acc=0, stops=[];
-  top3.forEach(d=>{ const share=d.streams/total; const a0=acc*360, a1=(acc+=share)*360; stops.push(`${hslFor(d.name)} ${a0}deg ${a1}deg`); });
-  stops.push(`#2b2b40 ${acc*360}deg 360deg`);
+  let acc=0,stops=[];
+  top3.forEach(d=>{const share=d.streams/total;const a0=acc*360,a1=(acc+=share)*360;stops.push(`${hslFor(d.name)} ${a0}deg ${a1}deg`);});
+  stops.push(`${'var(--other)'} ${acc*360}deg 360deg`);
   $("#pie").style.background=`conic-gradient(${stops.join(',')})`;
   $("#legend").innerHTML = top3.map(d=>{
     const pct=((d.streams/total)*100).toFixed(1);
     return `<div class="legend-item"><span class="swatch" style="background:${hslFor(d.name)}"></span><span>${d.name}</span><b>${pct}%</b></div>`;
-  }).join('') + `<div class="legend-item"><span class="swatch" style="background:#2b2b40"></span><span>Other</span><b>${((1-acc)*100).toFixed(1)}%</b></div>`;
+  }).join('') + `<div class="legend-item"><span class="swatch" style="background:var(--other)"></span><span>Other</span><b>${((1-acc)*100).toFixed(1)}%</b></div>`;
 }
 
-/* ===== START ===== */
-renderQ();  // start immediately
+/* ========= END ========= */
+function finish(){
+  stopTimer();
+  qEl.textContent = "Broadcast Complete!";
+  answersEl.innerHTML='';
+  const passed = (score >= 3*50); // about 3 correct at baseline
+  resEl.innerHTML = `Final Score: <b>${score}</b> • ${passed?'Unlocked!':'Try again for the EP'}`;
+  const el = passed ? Object.assign(document.createElement('a'),{href:'music',target:'_blank',textContent:'Unlock EP',className:'cta'})
+                    : Object.assign(document.createElement('a'),{href:'#',textContent:'Restart',className:'cta',onclick:(e)=>{e.preventDefault();restart();}});
+  answersEl.appendChild(el);
+}
+function restart(){ qIdx=0; score=0; streak=1; used5050=false; scoreEl.textContent=0; streakEl.textContent=1; updateBeam(); renderQ(); }
+
+/* start */
+updateBeam(); renderQ();
 </script>
 </body>
 </html>
-
 
 
