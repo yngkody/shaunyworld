@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>SHAUNY • Channel 4 LIVE — Wallflower Circuit (Mobile-First)</title>
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous" />
@@ -10,123 +10,254 @@
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap" rel="stylesheet" />
 
 <style>
+/* ---------- Base / Resets ---------- */
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
 :root{
   --bg:#0b0b12;--bezel:#0a0a12;--line:rgba(255,255,255,.10);
   --glass:#0f0f16;--ink:#f2f1ff;--muted:#a6a3c9;
-  --pink:#ff8bd4;--aqua:#50e3ff;--lilac:#a86cff;--yellow:#ffe980;--other:#2b2b40
+  --pink:#ff8bd4;--aqua:#50e3ff;--lilac:#a86cff;--yellow:#ffe980;--other:#2b2b40;
+
+  /* responsive scales */
+  --pad:clamp(8px, 2.2vw, 18px);
+  --round-lg:clamp(12px, 2.2vw, 26px);
+  --round-md:clamp(10px, 1.6vw, 18px);
+  --hud-h:clamp(36px, 6.5vw, 46px);
 }
 
-/* Page */
-html,body{margin:0;height:100%;background:radial-gradient(1200px at 50% -10%,#141425,#090912 70%);color:var(--ink);
-  font-family:ui-sans-serif,system-ui,Inter,Segoe UI,Roboto,Arial}
-/* Mobile-first TV */
-.tv-wrap{display:grid;place-items:center;min-height:100dvh;padding:12px}
+html,body{
+  margin:0;
+  height:100%;
+  background:radial-gradient(1200px at 50% -10%,#141425,#090912 70%);
+  color:var(--ink);
+  font-family:ui-sans-serif,system-ui,Inter,Segoe UI,Roboto,Arial;
+}
+
+/* ---------- Page Frame ---------- */
+.tv-wrap{
+  display:grid;
+  place-items:center;
+  /* Use safe viewport units; fall back to d(v)h where supported */
+  min-height:100svh;
+  padding:var(--pad);
+  padding-top:calc(env(safe-area-inset-top,0px) + var(--pad));
+  padding-bottom:calc(env(safe-area-inset-bottom,0px) + var(--pad));
+}
+
+/* TV container
+   • Landscape or wide screens: width-driven via aspect-ratio.
+   • Portrait (phone): height-driven so nothing clips. */
 .tv{
-  width:100%;max-width:900px;aspect-ratio:16/9;position:relative;border-radius:26px;
+  position:relative;
   background:linear-gradient(160deg,#2a2a3c,#151522);
-  box-shadow:0 36px 90px rgba(0,0,0,.6),
-             inset 0 0 0 14px var(--bezel),
-             inset 0 0 0 16px rgba(255,255,255,.06)
-}
-.tv:before{content:"";position:absolute;inset:10px;border-radius:22px;
-  background:linear-gradient(180deg,#24243a,#0e0e18);box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
-.screen{position:absolute;inset:22px;border-radius:18px;overflow:hidden;background:var(--glass);
-  box-shadow:inset 0 0 0 1px rgba(255,255,255,.07)}
-.screen:after{content:"";position:absolute;inset:0;pointer-events:none;opacity:.15;mix-blend-mode:overlay;
-  background:repeating-linear-gradient(to bottom,rgba(255,255,255,.25) 0 1px,transparent 1px 3px)}
+  border-radius:var(--round-lg);
+  box-shadow:
+    0 36px 90px rgba(0,0,0,.6),
+    inset 0 0 0 clamp(8px,1.5vw,14px) var(--bezel),
+    inset 0 0 0 clamp(10px,1.8vw,16px) rgba(255,255,255,.06);
+  overflow:hidden;
 
-/* Channel overlay HUD (inside the screen) */
+  /* wide default */
+  width:100%;
+  max-width:1100px;
+  aspect-ratio:16/9;
+}
+
+/* Portrait-first correction: if viewport is taller than 16:9, size by height */
+@media (max-aspect-ratio: 16/9){
+  .tv{
+    height:calc(100svh - 2*var(--pad) - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));
+    width:auto;
+    max-height:820px;
+    aspect-ratio:auto;
+  }
+}
+
+.tv::before{
+  content:"";
+  position:absolute; inset:clamp(6px,1vw,10px);
+  border-radius:calc(var(--round-lg) - clamp(6px,1vw,10px));
+  background:linear-gradient(180deg,#24243a,#0e0e18);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.08);
+}
+
+.screen{
+  position:absolute; inset:clamp(14px,1.5vw,22px);
+  border-radius:calc(var(--round-lg) - clamp(14px,1.5vw,22px));
+  overflow:hidden; background:var(--glass);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.07);
+}
+
+.screen::after{
+  content:""; position:absolute; inset:0; pointer-events:none; opacity:.12; mix-blend-mode:overlay;
+  background:repeating-linear-gradient(to bottom,rgba(255,255,255,.25) 0 1px,transparent 1px 3px);
+}
+
+/* ---------- HUD ---------- */
 .hud{
-  position:absolute;left:8px;right:8px;top:8px;z-index:5;display:flex;align-items:center;gap:8px;
-  background:rgba(14,14,24,.7);backdrop-filter:blur(6px);border:1px solid var(--line);border-radius:10px;padding:6px 8px
+  position:absolute; left:8px; right:8px; top:8px; z-index:5;
+  display:flex; align-items:center; gap:8px; height:var(--hud-h);
+  background:rgba(14,14,24,.7); backdrop-filter:blur(6px);
+  border:1px solid var(--line); border-radius:10px; padding:6px 8px;
 }
-.badge{display:inline-flex;align-items:center;gap:6px;padding:3px 8px;border-radius:999px;border:1px solid var(--line);
-  font-family:monospace;background:#0e0e18;color:#cfd2ff;font-size:12px}
-.dot{width:8px;height:8px;border-radius:50%;background:#ff4d6d;box-shadow:0 0 8px #ff4d6d}
-.hud .spacer{flex:1}
+.badge{
+  display:inline-flex; align-items:center; gap:6px; padding:4px 10px;
+  border-radius:999px; border:1px solid var(--line);
+  font-family:monospace; background:#0e0e18; color:#cfd2ff; font-size:12px; white-space:nowrap;
+}
+.dot{ width:8px; height:8px; border-radius:50%; background:#ff4d6d; box-shadow:0 0 8px #ff4d6d; }
+.hud .spacer{ flex:1; }
 
-/* Stage */
-.stage{position:absolute;inset:0;display:grid;place-items:center;padding:56px 8px 16px}
-.beam{position:absolute;left:0;right:0;top:46px;height:3px;background:linear-gradient(90deg,var(--pink),var(--aqua));
-  box-shadow:0 0 14px var(--pink),0 0 26px var(--aqua);transform-origin:left;transform:scaleX(var(--p,0));opacity:.7}
+/* Allow badges to wrap on very small widths */
+@media (max-width:380px){
+  .hud{ flex-wrap:wrap; height:auto; row-gap:6px; }
+}
 
-/* Card */
-.card{position:relative;width:100%;max-width:820px;margin:auto;padding:14px;border-radius:16px;
-  background:rgba(0,0,0,.78);text-align:center;font-family:'Orbitron',sans-serif;
-  border:2px solid var(--pink);box-shadow:0 0 16px var(--pink),0 0 32px var(--aqua)}
-.card h1{margin:2px 0 8px;font-size:clamp(20px,5vw,28px);color:var(--pink);text-shadow:0 0 12px var(--pink),0 0 24px var(--aqua)}
-.subtitle{margin:0 0 8px;color:#dcdafc;opacity:.9;font-size:12px}
+/* ---------- Stage ---------- */
+.stage{
+  position:absolute; inset:0; display:grid; place-items:center;
+  padding:calc(var(--hud-h) + 12px) 8px 16px; /* keep content clear of HUD */
+}
+
+.beam{
+  position:absolute; left:0; right:0; top:calc(var(--hud-h) + 6px);
+  height:3px;
+  background:linear-gradient(90deg,var(--pink),var(--aqua));
+  box-shadow:0 0 14px var(--pink),0 0 26px var(--aqua);
+  transform-origin:left;
+  transform:scaleX(var(--p,0));
+  opacity:.7;
+}
+
+/* ---------- Card ---------- */
+.card{
+  position:relative; width:min(920px, 96%); margin:auto; padding:clamp(10px, 2.4vw, 16px);
+  border-radius:16px; text-align:center; font-family:'Orbitron',sans-serif;
+  background:rgba(0,0,0,.78);
+  border:2px solid var(--pink);
+  box-shadow:0 0 16px var(--pink),0 0 32px var(--aqua);
+}
+.card h1{
+  margin:2px 0 6px;
+  font-size:clamp(18px, 5vw, 28px);
+  color:var(--pink);
+  text-shadow:0 0 12px var(--pink),0 0 24px var(--aqua);
+}
+.subtitle{ margin:0 0 8px; color:#dcdafc; opacity:.9; font-size:12px }
 
 /* Timer ring */
-.ring{--deg:0deg;position:absolute;right:10px;top:10px;width:48px;height:48px;border-radius:50%;
+.ring{
+  --deg:0deg;
+  position:absolute; right:10px; top:10px;
+  width:clamp(38px, 6.2vw, 48px); height:clamp(38px, 6.2vw, 48px);
+  border-radius:50%;
   background:conic-gradient(var(--aqua) var(--deg), rgba(255,255,255,.06) 0);
-  display:grid;place-items:center;border:1px solid var(--line);box-shadow:inset 0 0 0 2px rgba(0,0,0,.6)}
-.ring span{display:inline-block;background:#0e0e18;border:1px solid var(--line);width:36px;height:36px;border-radius:50%;
-  line-height:36px;text-align:center;font-weight:800;font-size:12px}
-
-/* Q/A — mobile first */
-#question{font-size:clamp(16px,4.8vw,20px);margin:10px 0 12px}
-#answers{display:grid;grid-template-columns:1fr;gap:10px}
-@media (min-width:640px){#answers{grid-template-columns:repeat(2,minmax(160px,1fr))}}
-.answer{
-  background:linear-gradient(90deg,var(--pink),var(--aqua));border:0;border-radius:12px;min-height:48px;padding:12px;
-  font-weight:800;color:#000;text-transform:uppercase;cursor:pointer;
-  box-shadow:0 0 10px var(--pink),0 0 20px var(--aqua);transition:transform .15s,box-shadow .15s,filter .15s;font-size:14px
+  display:grid; place-items:center; border:1px solid var(--line);
+  box-shadow:inset 0 0 0 2px rgba(0,0,0,.6);
 }
-.answer:hover{transform:translateY(-1px);filter:brightness(1.03)}
-.answer.dim{filter:saturate(.1) brightness(.6);pointer-events:none}
+.ring span{
+  display:inline-block; background:#0e0e18; border:1px solid var(--line);
+  width:calc(100% - 12px); height:calc(100% - 12px);
+  border-radius:50%;
+  line-height:calc(100% - 12px);
+  text-align:center; font-weight:800; font-size:12px;
+}
+
+/* Q/A */
+#question{ font-size:clamp(16px,4.6vw,20px); margin:10px 0 12px }
+#answers{ display:grid; grid-template-columns:1fr; gap:10px; width:100% }
+@media (min-width:640px){ #answers{ grid-template-columns:repeat(2,minmax(160px,1fr)) } }
+
+.answer{
+  background:linear-gradient(90deg,var(--pink),var(--aqua));
+  border:0; border-radius:12px; min-height:48px; padding:12px;
+  font-weight:800; color:#000; text-transform:uppercase; cursor:pointer;
+  box-shadow:0 0 10px var(--pink),0 0 20px var(--aqua);
+  transition:transform .15s,box-shadow .15s,filter .15s; font-size:14px;
+  word-break:break-word;
+}
+.answer:hover{ transform:translateY(-1px); filter:brightness(1.03) }
+.answer.dim{ filter:saturate(.1) brightness(.6); pointer-events:none }
 
 /* Meta row */
-.meta{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:8px}
-.pill{background:#0e0e18;border:1px solid var(--line);border-radius:999px;padding:6px 10px;font-size:12px}
-.icon-btn{background:#0e0e18;border:1px solid var(--line);color:#fff;border-radius:999px;padding:8px 14px;cursor:pointer;font-size:12px}
+.meta{
+  display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-top:8px
+}
+.pill, .icon-btn{
+  background:#0e0e18; border:1px solid var(--line); color:#fff; border-radius:999px;
+  padding:8px 12px; font-size:12px
+}
+.icon-btn{ cursor:pointer }
 
 /* Feedback + CTA */
-#result{margin-top:8px;min-height:22px;color:#fff}
-.cta{display:inline-block;margin-top:10px;padding:10px 18px;border-radius:12px;background:linear-gradient(90deg,var(--pink),var(--aqua));
-  color:#000;font-weight:800;text-decoration:none}
+#result{ margin-top:8px; min-height:22px; color:#fff }
+.cta{
+  display:inline-block; margin-top:10px; padding:10px 18px; border-radius:12px;
+  background:linear-gradient(90deg,var(--pink),var(--aqua));
+  color:#000; font-weight:800; text-decoration:none
+}
 
 /* Animations */
-@keyframes correctPulse{0%{box-shadow:0 0 10px var(--pink),0 0 20px var(--aqua)}100%{box-shadow:0 0 20px var(--pink),0 0 40px var(--aqua)}}
-.ok{animation:correctPulse .35s ease-out}
-@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
-.nope{animation:shake .25s linear}
+@keyframes correctPulse{ 0%{box-shadow:0 0 10px var(--pink),0 0 20px var(--aqua)} 100%{box-shadow:0 0 20px var(--pink),0 0 40px var(--aqua)} }
+.ok{ animation:correctPulse .35s ease-out }
+@keyframes shake{ 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
+.nope{ animation:shake .25s linear }
 
-/* Modals */
-.modal{position:absolute;inset:0;display:none;align-items:flex-start;justify-content:center;padding:10px;z-index:6}
-.modal.open{display:flex}
-.panel{width:100%;max-width:880px;max-height:86dvh;overflow:auto;padding:12px;border-radius:14px;
-  background:linear-gradient(180deg,#1c1c2a,#12121f);border:1px solid var(--line);box-shadow:0 0 28px rgba(0,0,0,.6)}
-.head{display:flex;gap:10px;align-items:center;margin-bottom:8px}
-.head h3{margin:0;font-size:14px;letter-spacing:.08em}
-.head .spacer{flex:1}
-.head .icon-btn{padding:6px 10px}
-#mapBox{width:100%;height:min(520px,65dvh);border:1px solid var(--line);border-radius:12px;background:#0e0e18;overflow:hidden}
+/* ---------- Modals ---------- */
+.modal{
+  position:absolute; inset:0; display:none; align-items:flex-start; justify-content:center;
+  padding:10px; z-index:6; overflow:auto;
+}
+.modal.open{ display:flex }
+.panel{
+  width:100%; max-width:880px; max-height:86svh; overflow:auto; padding:12px; border-radius:14px;
+  background:linear-gradient(180deg,#1c1c2a,#12121f);
+  border:1px solid var(--line); box-shadow:0 0 28px rgba(0,0,0,.6)
+}
+.head{ display:flex; gap:10px; align-items:center; margin-bottom:8px }
+.head h3{ margin:0; font-size:14px; letter-spacing:.08em }
+.head .spacer{ flex:1 }
+.head .icon-btn{ padding:6px 10px }
+
+/* Map & Stats areas scale safely */
+#mapBox{
+  width:100%;
+  height:min(520px, 65svh);
+  border:1px solid var(--line); border-radius:12px; background:#0e0e18; overflow:hidden
+}
 
 /* Stats */
-.kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:8px}
-@media (min-width:720px){.kpis{grid-template-columns:repeat(5,1fr)}}
-.kpi{background:linear-gradient(180deg,rgba(168,108,255,.08),rgba(80,227,255,.08));border:1px solid var(--line);border-radius:12px;padding:8px}
-.kpi .lab{font-size:10px;color:var(--muted)} .kpi .val{font-size:16px;font-weight:800}
-.table{display:grid;gap:6px;max-height:50dvh;overflow:auto;border-top:1px solid var(--line);padding-top:8px}
-.row{display:grid;grid-template-columns:1.6fr .8fr .8fr .8fr .8fr;gap:8px;align-items:center;font-size:12px}
-.row.head{position:sticky;top:0;background:#12121f;border-bottom:1px solid var(--line);padding:6px 0;color:var(--muted);z-index:1}
-.search{display:flex;gap:8px;margin:6px 0}
-.search input{flex:1;padding:8px;border-radius:8px;border:1px solid var(--line);background:#0e0e18;color:#fff}
-.legend{display:grid;gap:6px;margin-top:10px}
-.donut{display:grid;grid-template-columns:140px 1fr;gap:10px;align-items:center}
-.pie{width:140px;height:140px;border-radius:50%;border:1px solid var(--line);position:relative}
-.pie:after{content:"";position:absolute;inset:18px;border-radius:50%;background:#151526;border:1px solid var(--line)}
-.swatch{width:12px;height:12px;border-radius:3px;display:inline-block}
-.legend-item{display:flex;align-items:center;justify-content:space-between;gap:8px;background:rgba(255,255,255,.04);border:1px solid var(--line);
-  padding:6px 8px;border-radius:10px;font-size:12px}
+.kpis{ display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin-bottom:8px }
+@media (min-width:720px){ .kpis{ grid-template-columns:repeat(5,1fr) } }
+.kpi{ background:linear-gradient(180deg,rgba(168,108,255,.08),rgba(80,227,255,.08)); border:1px solid var(--line); border-radius:12px; padding:8px }
+.kpi .lab{ font-size:10px; color:var(--muted) } .kpi .val{ font-size:16px; font-weight:800 }
+
+.search{ display:flex; gap:8px; margin:6px 0 }
+.search input{ flex:1; padding:10px; border-radius:8px; border:1px solid var(--line); background:#0e0e18; color:#fff }
+
+.table{ display:grid; gap:6px; max-height:50svh; overflow:auto; border-top:1px solid var(--line); padding-top:8px }
+.row{ display:grid; grid-template-columns:1.6fr .8fr .8fr .8fr .8fr; gap:8px; align-items:center; font-size:12px; min-width:520px }
+.row.head{ position:sticky; top:0; background:#12121f; border-bottom:1px solid var(--line); padding:6px 0; color:var(--muted); z-index:1 }
+
+.donut{ display:grid; grid-template-columns:140px 1fr; gap:10px; align-items:center; margin-top:10px }
+.pie{ width:140px; height:140px; border-radius:50%; border:1px solid var(--line); position:relative }
+.pie::after{ content:""; position:absolute; inset:18px; border-radius:50%; background:#151526; border:1px solid var(--line) }
+.legend{ display:grid; gap:6px }
+.swatch{ width:12px; height:12px; border-radius:3px; display:inline-block }
+.legend-item{
+  display:flex; align-items:center; justify-content:space-between; gap:8px;
+  background:rgba(255,255,255,.04); border:1px solid var(--line);
+  padding:6px 8px; border-radius:10px; font-size:12px
+}
 
 /* Leaflet tweaks */
-.leaflet-div-icon{background:transparent;border:none}
-.neon-dot{--c:#a86cff;width:16px;height:16px;border-radius:50%;display:block;background:var(--c);
-  border:2px solid rgba(255,255,255,.95);box-shadow:0 0 10px var(--c),0 0 24px var(--c),0 0 40px var(--c)}
-.leaflet-popup-content-wrapper{background:#151526;color:var(--ink);border-radius:12px;border:1px solid var(--line)}
-.leaflet-popup-tip{background:#151526}
+.leaflet-div-icon{ background:transparent; border:none }
+.neon-dot{ --c:#a86cff; width:16px; height:16px; border-radius:50%; display:block; background:var(--c);
+  border:2px solid rgba(255,255,255,.95); box-shadow:0 0 10px var(--c),0 0 24px var(--c),0 0 40px var(--c) }
+.leaflet-popup-content-wrapper{ background:#151526; color:var(--ink); border-radius:12px; border:1px solid var(--line) }
+.leaflet-popup-tip{ background:#151526 }
 </style>
 </head>
 <body>
@@ -202,9 +333,8 @@ html,body{margin:0;height:100%;background:radial-gradient(1200px at 50% -10%,#14
 
 <script>
 /* ========= DATA ========= */
-/* Full region list pulled from your Apple Music CSV (85 rows) */
-const REGIONS = [{"name":"United States","plays":30410,"monthly":326,"spins":5,"shazams":2917},{"name":"Canada","plays":1164,"monthly":9,"spins":0,"shazams":206},{"name":"France","plays":297,"monthly":3,"spins":0,"shazams":5},{"name":"United Kingdom","plays":279,"monthly":5,"spins":1,"shazams":32},{"name":"Japan","plays":147,"monthly":4,"spins":0,"shazams":2},{"name":"Germany","plays":134,"monthly":2,"spins":0,"shazams":7},{"name":"India","plays":131,"monthly":1,"spins":0,"shazams":1},{"name":"Australia","plays":120,"monthly":2,"spins":0,"shazams":4},{"name":"Mexico","plays":108,"monthly":2,"spins":0,"shazams":1},{"name":"Netherlands","plays":93,"monthly":1,"spins":0,"shazams":4},{"name":"Nigeria","plays":84,"monthly":2,"spins":0,"shazams":8},{"name":"Brazil","plays":78,"monthly":2,"spins":0,"shazams":3},{"name":"Italy","plays":73,"monthly":2,"spins":0,"shazams":2},{"name":"Spain","plays":71,"monthly":2,"spins":0,"shazams":3},{"name":"South Africa","plays":66,"monthly":2,"spins":0,"shazams":8},{"name":"Belgium","plays":60,"monthly":1,"spins":0,"shazams":3},{"name":"Sweden","plays":58,"monthly":1,"spins":0,"shazams":0},{"name":"Russia","plays":55,"monthly":1,"spins":0,"shazams":1},{"name":"Switzerland","plays":54,"monthly":1,"spins":0,"shazams":0},{"name":"Israel","plays":52,"monthly":1,"spins":0,"shazams":1},{"name":"Kenya","plays":50,"monthly":1,"spins":0,"shazams":4},{"name":"New Zealand","plays":45,"monthly":1,"spins":0,"shazams":0},{"name":"Poland","plays":45,"monthly":1,"spins":0,"shazams":0},{"name":"Ghana","plays":43,"monthly":1,"spins":0,"shazams":8},{"name":"Ireland","plays":41,"monthly":1,"spins":0,"shazams":2},{"name":"United Arab Emirates","plays":37,"monthly":1,"spins":0,"shazams":2},{"name":"Philippines","plays":37,"monthly":1,"spins":0,"shazams":1},{"name":"Norway","plays":33,"monthly":1,"spins":0,"shazams":0},{"name":"Portugal","plays":32,"monthly":1,"spins":0,"shazams":0},{"name":"Singapore","plays":31,"monthly":1,"spins":0,"shazams":1},{"name":"Hong Kong","plays":26,"monthly":1,"spins":0,"shazams":0},{"name":"Thailand","plays":26,"monthly":1,"spins":0,"shazams":1},{"name":"Czech Republic","plays":25,"monthly":1,"spins":0,"shazams":0},{"name":"Turkey","plays":25,"monthly":1,"spins":0,"shazams":0},{"name":"Austria","plays":24,"monthly":1,"spins":0,"shazams":0},{"name":"Argentina","plays":23,"monthly":1,"spins":0,"shazams":0},{"name":"Romania","plays":23,"monthly":1,"spins":0,"shazams":0},{"name":"Colombia","plays":22,"monthly":1,"spins":0,"shazams":0},{"name":"Denmark","plays":22,"monthly":1,"spins":0,"shazams":1},{"name":"South Korea","plays":21,"monthly":1,"spins":0,"shazams":0},{"name":"Finland","plays":20,"monthly":1,"spins":0,"shazams":0},{"name":"Indonesia","plays":20,"monthly":1,"spins":0,"shazams":0},{"name":"Saudi Arabia","plays":19,"monthly":1,"spins":0,"shazams":0},{"name":"Chile","plays":18,"monthly":1,"spins":0,"shazams":0},{"name":"Peru","plays":18,"monthly":1,"spins":0,"shazams":0},{"name":"Taiwan","plays":18,"monthly":1,"spins":0,"shazams":0},{"name":"Vietnam","plays":18,"monthly":1,"spins":0,"shazams":0},{"name":"Dominican Republic","plays":17,"monthly":1,"spins":0,"shazams":0},{"name":"Hungary","plays":17,"monthly":1,"spins":0,"shazams":0},{"name":"Qatar","plays":17,"monthly":1,"spins":0,"shazams":0},{"name":"Greece","plays":16,"monthly":1,"spins":0,"shazams":0},{"name":"Kuwait","plays":16,"monthly":1,"spins":0,"shazams":0},{"name":"Pakistan","plays":16,"monthly":1,"spins":0,"shazams":0},{"name":"Ukraine","plays":16,"monthly":1,"spins":0,"shazams":0},{"name":"China mainland","plays":15,"monthly":1,"spins":0,"shazams":0},{"name":"Iraq","plays":15,"monthly":1,"spins":0,"shazams":0},{"name":"Malaysia","plays":15,"monthly":1,"spins":0,"shazams":0},{"name":"Morocco","plays":15,"monthly":1,"spins":0,"shazams":0},{"name":"Puerto Rico","plays":15,"monthly":1,"spins":0,"shazams":0},{"name":"Bulgaria","plays":14,"monthly":1,"spins":0,"shazams":0},{"name":"Costa Rica","plays":14,"monthly":1,"spins":0,"shazams":0},{"name":"Algeria","plays":13,"monthly":1,"spins":0,"shazams":0},{"name":"Egypt","plays":13,"monthly":1,"spins":0,"shazams":0},{"name":"Slovakia","plays":13,"monthly":1,"spins":0,"shazams":0},{"name":"Tunisia","plays":13,"monthly":1,"spins":0,"shazams":0},{"name":"Jamaica","plays":12,"monthly":1,"spins":0,"shazams":1},{"name":"Serbia","plays":12,"monthly":1,"spins":0,"shazams":0},{"name":"Uruguay","plays":12,"monthly":1,"spins":0,"shazams":0},{"name":"Georgia","plays":11,"monthly":1,"spins":0,"shazams":0},{"name":"Lebanon","plays":11,"monthly":1,"spins":0,"shazams":0},{"name":"Sri Lanka","plays":10,"monthly":1,"spins":0,"shazams":0},{"name":"Armenia","plays":9,"monthly":1,"spins":0,"shazams":0},{"name":"Ecuador","plays":9,"monthly":1,"spins":0,"shazams":0},{"name":"Panama","plays":9,"monthly":1,"spins":0,"shazams":0},{"name":"Bolivia","plays":8,"monthly":1,"spins":0,"shazams":0},{"name":"Guatemala","plays":8,"monthly":1,"spins":0,"shazams":0},{"name":"Honduras","plays":8,"monthly":1,"spins":0,"shazams":0},{"name":"Paraguay","plays":8,"monthly":1,"spins":0,"shazams":0},{"name":"Belarus","plays":7,"monthly":1,"spins":0,"shazams":0},{"name":"El Salvador","plays":6,"monthly":1,"spins":0,"shazams":0},{"name":"Lithuania","plays":6,"monthly":1,"spins":0,"shazams":0},{"name":"Moldova","plays":6,"monthly":1,"spins":0,"shazams":0},{"name":"Uganda","plays":6,"monthly":1,"spins":0,"shazams":0},{"name":"Azerbaijan","plays":5,"monthly":1,"spins":0,"shazams":0},{"name":"Benin","plays":5,"monthly":1,"spins":0,"shazams":0},{"name":"Ivory Coast","plays":5,"monthly":1,"spins":0,"shazams":0},{"name":"Oman","plays":5,"monthly":1,"spins":0,"shazams":0},{"name":"Tanzania","plays":5,"monthly":1,"spins":0,"shazams":0},{"name":"Macedonia","plays":4,"monthly":1,"spins":0,"shazams":0},{"name":"Nicaragua","plays":4,"monthly":1,"spins":0,"shazams":0},{"name":"Zimbabwe","plays":4,"monthly":1,"spins":0,"shazams":0},{"name":"Bosnia and Herzegovina","plays":3,"monthly":1,"spins":0,"shazams":0},{"name":"Jordan","plays":3,"monthly":1,"spins":0,"shazams":0},{"name":"Kyrgyzstan","plays":3,"monthly":1,"spins":0,"shazams":0},{"name":"Nepal","plays":3,"monthly":1,"spins":0,"shazams":0},{"name":"Zambia","plays":3,"monthly":1,"spins":0,"shazams":0},{"name":"Angola","plays":2,"monthly":1,"spins":0,"shazams":0},{"name":"Iceland","plays":2,"monthly":1,"spins":0,"shazams":0},{"name":"Luxembourg","plays":2,"monthly":1,"spins":0,"shazams":0},{"name":"Montenegro","plays":2,"monthly":1,"spins":0,"shazams":0},{"name":"Mozambique","plays":2,"monthly":1,"spins":0,"shazams":0},{"name":"Mali","plays":1,"monthly":1,"spins":0,"shazams":0},{"name":"Namibia","plays":1,"monthly":1,"spins":0,"shazams":0},{"name":"Slovakia","plays":1,"monthly":1,"spins":0,"shazams":0},{"name":"St. Vincent and The Grenadines","plays":1,"monthly":1,"spins":0,"shazams":0},{"name":"Trinidad and Tobago","plays":1,"monthly":1,"spins":0,"shazams":0}];
-/* combined headline numbers from your screenshots */
+const REGIONS = [{"name":"United States","plays":30410,"monthly":326,"spins":5,"shazams":2917},{"name":"Canada","plays":1164,"monthly":9,"spins":0,"shazams":206},{"name":"France","plays":297,"monthly":3,"spins":0,"shazams":5},{"name":"United Kingdom","plays":279,"monthly":5,"spins":1,"shazams":32},{"name":"Japan","plays":147,"monthly":4,"spins":0,"shazams":2},{"name":"Germany","plays":134,"monthly":2,"spins":0,"shazams":7},{"name":"India","plays":131,"monthly":1,"spins":0,"shazams":1},{"name":"Australia","plays":120,"monthly":2,"spins":0,"shazams":4},{"name":"Mexico","plays":108,"monthly":2,"spins":0,"shazams":1},{"name":"Netherlands","plays":93,"monthly":1,"spins":0,"shazams":4},{"name":"Nigeria","plays":84,"monthly":2,"spins":0,"shazams":8},{"name":"Brazil","plays":78,"monthly":2,"spins":0,"shazams":3},{"name":"Italy","plays":73,"monthly":2,"spins":0,"shazams":2},{"name":"Spain","plays":71,"monthly":2,"spins":0,"shazams":3},{"name":"South Africa","plays":66,"monthly":2,"spins":0,"shazams":8},{"name":"Belgium","plays":60,"monthly":1,"spins":0,"shazams":3},{"name":"Sweden","plays":58,"monthly":1,"spins":0,"shazams":0},{"name":"Russia","plays":55,"monthly":1,"spins":0,"shazams":1},{"name":"Switzerland","plays":54,"monthly":1,"spins":0,"shazams":0},{"name":"Israel","plays":52,"monthly":1,"spins":0,"shazams":1},{"name":"Kenya","plays":50,"monthly":1,"spins":0,"shazams":4},{"name":"New Zealand","plays":45,"monthly":1,"spins":0,"shazams":0},{"name":"Poland","plays":45,"monthly":1,"spins":0,"shazams":0},{"name":"Ghana","plays":43,"monthly":1,"spins":0,"shazams":8},{"name":"Ireland","plays":41,"monthly":1,"spins":0,"shazams":2},{"name":"United Arab Emirates","plays":37,"monthly":1,"spins":0,"shazams":2},{"name":"Philippines","plays":37,"monthly":1,"spins":0,"shazams":1},{"name":"Norway","plays":33,"monthly":1,"spins":0,"shazams":0},{"name":"Portugal","plays":32,"monthly":1,"spins":0,"shazams":0},{"name":"Singapore","plays":31,"monthly":1,"spins":0,"shazams":1},{"name":"Hong Kong","plays":26,"monthly":1,"spins":0,"shazams":0},{"name":"Thailand","plays":26,"monthly":1,"spins":0,"shazams":1},{"name":"Czech Republic","plays":25,"monthly":1,"spins":0,"shazams":0},{"name":"Turkey","plays":25,"monthly":1,"spins":0,"shazams":0},{"name":"Austria","plays":24,"monthly":1,"spins":0,"shazams":0},{"name":"Argentina","plays":23,"monthly":1,"spins":0,"shazams":0},{"name":"Romania","plays":23,"monthly":1,"spins":0,"shazams":0},{"name":"Colombia","plays":22,"monthly":1,"spins":0,"shazams":0},{"name":"Denmark","plays":22,"monthly":1,"spins":0,"shazams":1},{"name":"South Korea","plays":21,"monthly":1,"spins":0,"shazams":0},{"name":"Finland","plays":20,"monthly":1,"spins":0,"shazams":0},{"name":"Indonesia","plays":20,"monthly":1,"spins":0,"shazams":0},{"name":"Saudi Arabia","plays":19,"monthly":1,"spins":0,"shazams":0},{"name":"Chile","plays":18,"monthly":1,"spins":0,"shazams":0},{"name":"Peru","plays":18,"monthly":1,"spins":0,"shazams":0},{"name":"Taiwan","plays":18,"monthly":1,"spins":0,"shazams":0},{"name":"Vietnam","plays":18,"monthly":1,"spins":0,"shazams":0},{"name":"Dominican Republic","plays":17,"monthly":1,"spins":0,"shazams":0},{"name":"Hungary","plays":17,"monthly":1,"spins":0,"shazams":0},{"name":"Qatar","plays":17,"monthly":1,"spins":0,"shazams":0},{"name":"Greece","plays":16,"monthly":1,"spins":0,"shazams":0},{"name":"Kuwait","plays":16,"monthly":1,"spins":0,"shazams":0},{"name":"Pakistan","plays":16,"monthly":1,"spins":0,"shazams":0},{"name":"Ukraine","plays":16,"monthly":1,"spins":0,"shazams":0},{"name":"China mainland","plays":15,"monthly":1,"spins":0,"shazams":0},{"name":"Iraq","plays":15,"monthly":1,"spins":0,"shazams":0},{"name":"Malaysia","plays":15,"monthly":1,"spins":0,"shazams":0},{"name":"Morocco","plays":15,"monthly":1,"spins":0,"shazams":0},{"name":"Puerto Rico","plays":15,"monthly":1,"spins":0,"shazams":0},{"name":"Bulgaria","plays":14,"monthly":1,"spins":0,"shazams":0},{"name":"Costa Rica","plays":14,"monthly":1,"spins":0,"shazams":0},{"name":"Algeria","plays":13,"monthly":1,"spins":0,"shazams":0},{"name":"Egypt","plays":13,"monthly":1,"spins":0,"shazams":0},{"name":"Slovakia","plays":13,"monthly":1,"spins":0,"shazams":0},{"name":"Tunisia","plays":13,"monthly":1,"spins":0,"shazams":0},{"name":"Jamaica","plays":12,"monthly":1,"spins":1,"shazams":1},{"name":"Serbia","plays":12,"monthly":1,"spins":0,"shazams":0},{"name":"Uruguay","plays":12,"monthly":1,"spins":0,"shazams":0},{"name":"Georgia","plays":11,"monthly":1,"spins":0,"shazams":0},{"name":"Lebanon","plays":11,"monthly":1,"spins":0,"shazams":0},{"name":"Sri Lanka","plays":10,"monthly":1,"spins":0,"shazams":0},{"name":"Armenia","plays":9,"monthly":1,"spins":0,"shazams":0},{"name":"Ecuador","plays":9,"monthly":1,"spins":0,"shazams":0},{"name":"Panama","plays":9,"monthly":1,"spins":0,"shazams":0},{"name":"Bolivia","plays":8,"monthly":1,"spins":0,"shazams":0},{"name":"Guatemala","plays":8,"monthly":1,"spins":0,"shazams":0},{"name":"Honduras","plays":8,"monthly":1,"spins":0,"shazams":0},{"name":"Paraguay","plays":8,"monthly":1,"spins":0,"shazams":0},{"name":"Belarus","plays":7,"monthly":1,"spins":0,"shazams":0},{"name":"El Salvador","plays":6,"monthly":1,"spins":0,"shazams":0},{"name":"Lithuania","plays":6,"monthly":1,"spins":0,"shazams":0},{"name":"Moldova","plays":6,"monthly":1,"spins":0,"shazams":0},{"name":"Uganda","plays":6,"monthly":1,"spins":0,"shazams":0},{"name":"Azerbaijan","plays":5,"monthly":1,"spins":0,"shazams":0},{"name":"Benin","plays":5,"monthly":1,"spins":0,"shazams":0},{"name":"Ivory Coast","plays":5,"monthly":1,"spins":0,"shazams":0},{"name":"Oman","plays":5,"monthly":1,"spins":0,"shazams":0},{"name":"Tanzania","plays":5,"monthly":1,"spins":0,"shazams":0},{"name":"Macedonia","plays":4,"monthly":1,"spins":0,"shazams":0},{"name":"Nicaragua","plays":4,"monthly":1,"spins":0,"shazams":0},{"name":"Zimbabwe","plays":4,"monthly":1,"spins":0,"shazams":0},{"name":"Bosnia and Herzegovina","plays":3,"monthly":1,"spins":0,"shazams":0},{"name":"Jordan","plays":3,"monthly":1,"spins":0,"shazams":0},{"name":"Kyrgyzstan","plays":3,"monthly":1,"spins":0,"shazams":0},{"name":"Nepal","plays":3,"monthly":1,"spins":0,"shazams":0},{"name":"Zambia","plays":3,"monthly":1,"spins":0,"shazams":0},{"name":"Angola","plays":2,"monthly":1,"spins":0,"shazams":0},{"name":"Iceland","plays":2,"monthly":1,"spins":0,"shazams":0},{"name":"Luxembourg","plays":2,"monthly":1,"spins":0,"shazams":0},{"name":"Montenegro","plays":2,"monthly":1,"spins":0,"shazams":0},{"name":"Mozambique","plays":2,"monthly":1,"spins":0,"shazams":0},{"name":"Mali","plays":1,"monthly":1,"spins":0,"shazams":0},{"name":"Namibia","plays":1,"monthly":1,"spins":0,"shazams":0},{"name":"St. Vincent and The Grenadines","plays":1,"monthly":1,"spins":0,"shazams":0},{"name":"Trinidad and Tobago","plays":1,"monthly":1,"spins":0,"shazams":0}];
+
 const TOTALS = { spotify:209881, apple:33499, youtube:198170, spins:7000 };
 TOTALS.all = TOTALS.spotify + TOTALS.apple + TOTALS.youtube;
 
@@ -222,8 +352,8 @@ const bioQs = [
 
 function statsQs(){
   const sorted=[...REGIONS].sort((a,b)=>b.plays-a.plays);
-  const top = sorted[0].name;
-  const second = sorted[1].name;
+  const top = sorted[0]?.name ?? "United States";
+  const second = sorted[1]?.name ?? "Canada";
   return [
     { q:"Which region has the MOST plays?", o:[top, second, "Brazil", "Germany"], a: top },
     { q:"About how many Apple Music plays do I have (all-time)?", o:[fmt(33000), fmt(5000), fmt(120000), fmt(900000)], a: fmt(33000) },
@@ -323,7 +453,7 @@ lifelineBtn.addEventListener('click',()=>{
 let map, mapReady=false;
 document.getElementById("openMap").addEventListener('click',()=>{
   document.getElementById("mapModal").classList.add('open');
-  setTimeout(()=>{ if(!mapReady){ initMap(); mapReady=true; } else { map.invalidateSize(); } }, 30);
+  setTimeout(()=>{ if(!mapReady){ initMap(); mapReady=true; } else { map.invalidateSize(); } }, 50);
 });
 document.getElementById("closeMap").addEventListener('click',()=>document.getElementById("mapModal").classList.remove('open'));
 
@@ -368,8 +498,8 @@ function buildStats(){
     k('YouTube', TOTALS.youtube) +
     k('Radio Spins', TOTALS.spins);
 
-  // searchable full list
   const container = document.getElementById('regionTable');
+  container.innerHTML = '';
   const header = document.createElement('div');
   header.className='row head';
   header.innerHTML = '<div>Region</div><div>Plays</div><div>Monthly</div><div>Spins</div><div>Shazams</div>';
@@ -424,6 +554,4 @@ updateBeam(); renderQ();
 </script>
 </body>
 </html>
-
-
 
