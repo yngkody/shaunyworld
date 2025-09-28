@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>SHAUNY • Neon TV (Game w/ Map + Stats)</title>
+<title>SHAUNY • Neon TV — Wallflower Circuit</title>
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="anonymous"></script>
@@ -11,92 +11,119 @@
 
 <style>
 :root{
-  --bg:#0b0b12;--panel:#151526;--ink:#f2f1ff;--muted:#a6a3c9;--line:rgba(255,255,255,.12);
+  --bg:#0b0b12;--bezel:#0a0a12;--face:#1d1d2a;--glass:#0f0f16;
+  --ink:#f2f1ff;--muted:#a6a3c9;--line:rgba(255,255,255,.10);
   --lilac:#a86cff;--aqua:#50e3ff;--pink:#ff8bd4;--yellow:#ffe980
 }
-html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:ui-sans-serif,system-ui,Inter,Segoe UI,Roboto,Arial}
-.tv-wrap{display:flex;justify-content:center;align-items:center;min-height:100dvh;padding:16px}
+
+/* Page */
+html,body{margin:0;height:100%;background:radial-gradient(1200px at 50% -10%,#141425,#090912 70%);color:var(--ink);
+  font-family:ui-sans-serif,system-ui,Inter,Segoe UI,Roboto,Arial}
+
+/* TV */
+.tv-wrap{display:grid;place-items:center;min-height:100dvh;padding:18px}
 .tv{
-  position:relative;width:min(1200px,96vw);aspect-ratio:16/9;
-  background:linear-gradient(145deg,#2a2a3c,#191923);
-  border:12px solid #0a0a12;border-radius:24px;
-  box-shadow:0 40px 90px rgba(0,0,0,.55),inset 0 0 0 2px rgba(255,255,255,.08);
-  overflow:hidden; /* <- hard clip everything to bezel */
+  width:min(1200px,96vw);aspect-ratio:16/9;position:relative;
+  border-radius:28px;background:linear-gradient(160deg,#2a2a3c,#151522);
+  box-shadow:
+    0 40px 120px rgba(0,0,0,.6),
+    inset 0 0 0 14px var(--bezel),
+    inset 0 0 0 16px rgba(255,255,255,.05);
+}
+.tv:before{/* ridge */
+  content:"";position:absolute;inset:8px;border-radius:24px;
+  background:linear-gradient(180deg,#26263a,#0e0e18);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.06);
 }
 .screen{
-  position:absolute;inset:18px;background:#0f0f16;border-radius:18px;overflow:hidden; /* <- clip children */
-  box-shadow:inset 0 0 0 1px rgba(255,255,255,.08),0 15px 40px rgba(0,0,0,.5)
+  position:absolute;inset:22px;border-radius:20px;background:var(--glass);overflow:hidden;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.07), inset 0 50px 80px rgba(255,255,255,.04);
 }
-.screen::after{
-  content:"";position:absolute;inset:0;
-  background:repeating-linear-gradient(to bottom,rgba(255,255,255,.05) 0 1px,transparent 1px 3px);
-  mix-blend-mode:overlay;pointer-events:none;opacity:.2
+.screen:after{/* scanlines */
+  content:"";position:absolute;inset:0;pointer-events:none;opacity:.15;mix-blend-mode:overlay;
+  background:repeating-linear-gradient(to bottom,rgba(255,255,255,.5) 0 1px,transparent 1px 3px)
 }
-.vignette{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 60%,rgba(0,0,0,.55) 100%)}
 
-/* HUD */
+/* Top HUD & bottom controls */
 .hud{
-  position:absolute;left:18px;right:18px;top:18px;display:flex;gap:8px;align-items:center;z-index:5;
-  background:rgba(20,20,35,.55);backdrop-filter:blur(6px);
-  border:1px solid var(--line);border-radius:12px;padding:8px 10px
+  position:absolute;left:28px;right:28px;top:28px;z-index:5;
+  display:flex;gap:10px;align-items:center;padding:8px 10px;
+  border:1px solid var(--line);border-radius:12px;background:rgba(20,20,35,.55);backdrop-filter:blur(6px)
 }
-.hud .title{font-weight:800;letter-spacing:.08em;font-size:12px;opacity:.95}
+.hud .brand{font-weight:800;letter-spacing:.12em;font-size:12px}
+.hud .chip{font-family:monospace;font-size:12px;padding:4px 8px;border-radius:999px;background:#0e0e18;border:1px solid var(--line);color:#cdd1ff}
 .hud .spacer{flex:1}
-.hud .chip{font-family:monospace;font-size:12px;color:#c7c5ff;background:#0e0e18;border:1px solid var(--line);border-radius:10px;padding:4px 8px}
-
-/* GAME */
-.game-wrap{position:absolute;inset:18px;display:grid;place-items:center;padding:8px}
-#quiz-card{position:relative;margin:auto;padding:18px;max-width:900px;width:min(100%,900px);background:rgba(0,0,0,0.78);
-  border:2px solid var(--pink);border-radius:18px;box-shadow:0 0 20px var(--pink), 0 0 45px var(--aqua);text-align:center;font-family:'Orbitron',sans-serif}
-#quiz-card h1{font-size:clamp(22px,4vw,34px);color:var(--pink);text-shadow:0 0 12px var(--pink),0 0 24px var(--aqua);margin:6px 0 10px}
-#q{font-size:clamp(14px,3.4vw,20px);margin:8px 0 14px}
-#opts{display:grid;grid-template-columns:repeat(2,minmax(160px,1fr));gap:12px;justify-content:center}
-@media (max-width:640px){#opts{grid-template-columns:1fr}}
-#opts button{background:linear-gradient(90deg,var(--pink),var(--aqua));border:none;padding:12px;margin:0;border-radius:12px;
-  font-weight:bold;color:#000;cursor:pointer;text-transform:uppercase;min-height:44px;
-  box-shadow:0 0 10px var(--pink),0 0 20px var(--aqua);transition:transform .2s, box-shadow .2s}
-#opts button:hover{transform:scale(1.03);box-shadow:0 0 18px var(--pink),0 0 36px var(--aqua)}
-#result{margin-top:12px;font-size:16px;color:var(--yellow);text-shadow:0 0 10px var(--pink);min-height:24px}
-.actions{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:10px}
-.actions button{background:#0e0e18;border:1px solid var(--line);color:#fff;border-radius:999px;padding:6px 12px;cursor:pointer}
-.game-cta{display:inline-block;margin-top:12px;padding:10px 20px;border-radius:12px;background:linear-gradient(90deg,var(--pink),var(--aqua));
-  text-decoration:none;color:#000;font-weight:bold;text-transform:uppercase;box-shadow:0 0 10px var(--pink),0 0 20px var(--aqua)}
-.modal{position:absolute;inset:0;background:rgba(0,0,0,.82);display:none;align-items:center;justify-content:center;border-radius:16px;z-index:6}
-.modal.open{display:flex}
-.modal-card{
-  width:min(1000px,94%);max-height:86%;overflow:auto;border-radius:16px;background:linear-gradient(180deg,#1c1c2a,#12121f);
-  border:1px solid var(--line);padding:14px;box-shadow:0 0 24px rgba(0,0,0,.5)
+.controls{
+  position:absolute;left:28px;right:28px;bottom:28px;z-index:5;
+  display:flex;justify-content:center;gap:10px
 }
-.modal-head{display:flex;align-items:center;gap:10px;margin-bottom:10px}
-.modal-head h3{margin:0;font-size:16px;letter-spacing:.06em}
-.modal-head .spacer{flex:1}
-.modal-head button{background:#0e0e18;border:1px solid var(--line);color:#fff;border-radius:999px;padding:6px 10px;cursor:pointer}
+.btn{
+  background:linear-gradient(180deg,rgba(168,108,255,.25),rgba(80,227,255,.18));
+  border:1px solid var(--line);color:var(--ink);border-radius:999px;
+  padding:8px 12px;font-size:12px;cursor:pointer
+}
 
-/* Map inside modal */
-#miniMap{width:100%;height:min(520px,62dvh);border:1px solid var(--line);border-radius:12px;overflow:hidden;background:#0e0e18}
+/* Game card */
+.stage{position:absolute;inset:22px;display:grid;place-items:center;padding:10px}
+.card{
+  width:min(980px,92%);max-width:980px;margin:auto;padding:18px;border-radius:18px;
+  background:rgba(0,0,0,.78);text-align:center;font-family:'Orbitron',sans-serif;
+  border:2px solid var(--pink);box-shadow:0 0 20px var(--pink),0 0 45px var(--aqua)
+}
+.card h1{margin:6px 0 12px;font-size:clamp(22px,3.8vw,36px);color:var(--pink);
+  text-shadow:0 0 14px var(--pink),0 0 32px var(--aqua)}
+#question{font-size:clamp(15px,2.6vw,22px);margin:8px 0 14px}
+#answers{display:grid;grid-template-columns:repeat(2,minmax(160px,1fr));gap:12px}
+@media (max-width:640px){#answers{grid-template-columns:1fr}}
+#answers button{
+  background:linear-gradient(90deg,var(--pink),var(--aqua));border:0;border-radius:12px;
+  min-height:46px;padding:12px;font-weight:800;color:#000;text-transform:uppercase;cursor:pointer;
+  box-shadow:0 0 10px var(--pink),0 0 20px var(--aqua);transition:transform .18s,box-shadow .18s
+}
+#answers button:hover{transform:scale(1.03);box-shadow:0 0 18px var(--pink),0 0 36px var(--aqua)}
+.meta{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:10px}
+.meta .pill{background:#0e0e18;border:1px solid var(--line);border-radius:999px;padding:6px 10px}
+#result{margin-top:10px;min-height:24px;color:var(--yellow);text-shadow:0 0 10px var(--pink)}
+.cta{
+  display:inline-block;margin-top:12px;padding:10px 20px;border-radius:12px;
+  background:linear-gradient(90deg,var(--pink),var(--aqua));color:#000;font-weight:800;text-decoration:none
+}
+.icon-btn{background:#0e0e18;border:1px solid var(--line);color:#fff;border-radius:999px;padding:6px 12px;cursor:pointer}
+
+/* Modals (Map + Stats) */
+.modal{position:absolute;inset:0;display:none;align-items:center;justify-content:center;z-index:6}
+.modal.open{display:flex}
+.modal .panel{
+  width:min(1100px,94%);max-height:86dvh;overflow:auto;padding:14px;border-radius:16px;
+  background:linear-gradient(180deg,#1c1c2a,#12121f);border:1px solid var(--line);box-shadow:0 0 28px rgba(0,0,0,.6)
+}
+.modal .head{display:flex;gap:10px;align-items:center;margin-bottom:10px}
+.modal .head h3{margin:0;font-size:16px;letter-spacing:.08em}
+.modal .head .spacer{flex:1}
+.modal .head .icon-btn{padding:6px 10px}
+
+#mapBox{width:100%;height:min(560px,65dvh);border:1px solid var(--line);border-radius:12px;background:#0e0e18;overflow:hidden}
 .leaflet-div-icon{background:transparent;border:none}
 .neon-dot{--c:#a86cff;width:16px;height:16px;display:block;border-radius:50%;background:var(--c);
   border:2px solid rgba(255,255,255,.95);box-shadow:0 0 10px var(--c),0 0 24px var(--c),0 0 40px var(--c)}
-.leaflet-popup-content-wrapper{background:var(--panel);color:var(--ink);border-radius:12px;border:1px solid var(--line)}
-.leaflet-popup-tip{background:var(--panel)}
+.leaflet-popup-content-wrapper{background:#151526;color:var(--ink);border-radius:12px;border:1px solid var(--line)}
+.leaflet-popup-tip{background:#151526}
 
-/* Stats layout inside modal */
-.stats-wrap{display:grid;gap:12px}
-.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
-.kpi{background:linear-gradient(180deg,rgba(168,108,255,.08),rgba(80,227,255,.08));border:1px solid var(--line);
-  border-radius:12px;padding:8px}
-.kpi-label{font-size:11px;color:var(--muted)} .kpi-value{font-size:18px;font-weight:800}
+.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:8px}
 @media (max-width:900px){.kpis{grid-template-columns:repeat(2,1fr)}}
+.kpi{background:linear-gradient(180deg,rgba(168,108,255,.08),rgba(80,227,255,.08));border:1px solid var(--line);border-radius:12px;padding:8px}
+.kpi .lab{font-size:11px;color:var(--muted)} .kpi .val{font-size:18px;font-weight:800}
 .table{display:grid;gap:6px}
-.head{display:grid;grid-template-columns:1.3fr 3fr .9fr .9fr;gap:8px;font-size:12px;color:var(--muted);padding-bottom:4px;border-bottom:1px solid var(--line)}
-.row{display:grid;grid-template-columns:1.3fr 3fr .9fr .9fr;align-items:center;gap:8px}
-.cell{font-size:12px} .cell.small{color:var(--muted)}
+.headrow,.row{display:grid;grid-template-columns:1.3fr 3fr .9fr .9fr;gap:8px;align-items:center}
+.headrow{font-size:12px;color:var(--muted);padding-bottom:4px;border-bottom:1px solid var(--line)}
+.cell{font-size:12px}
 .cell.bar{background:rgba(255,255,255,.04);border:1px dashed var(--line);border-radius:10px;overflow:hidden}
-.bar-fill{height:22px;background:linear-gradient(90deg,var(--lilac),var(--aqua));position:relative;width:var(--w)}
-.bar-fill span{position:absolute;right:6px;top:50%;transform:translateY(-50%);font-weight:700;font-size:11px;color:#0f0f16}
-.pane{display:grid;grid-template-columns:160px 1fr;gap:14px;align-items:center}
-.pie{width:160px;height:160px;border-radius:50%;position:relative;border:1px solid var(--line)}
-.pie:after{content:"";position:absolute;inset:22px;background:var(--panel);border-radius:50%;border:1px solid var(--line)}
+.fill{height:22px;background:linear-gradient(90deg,var(--lilac),var(--aqua));position:relative;width:var(--w)}
+.fill span{position:absolute;right:6px;top:50%;transform:translateY(-50%);font-weight:700;font-size:11px;color:#0f0f16}
+
+.donut{display:grid;grid-template-columns:160px 1fr;gap:14px;align-items:center;margin-top:10px}
+.pie{width:160px;height:160px;border-radius:50%;border:1px solid var(--line);position:relative}
+.pie:after{content:"";position:absolute;inset:22px;border-radius:50%;background:#151526;border:1px solid var(--line)}
 .legend{display:grid;gap:6px}
 .legend-item{display:flex;align-items:center;justify-content:space-between;gap:8px;background:rgba(255,255,255,.04);border:1px solid var(--line);
   padding:8px 10px;border-radius:10px;font-size:12px}
@@ -104,33 +131,229 @@ html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family
 </style>
 </head>
 <body>
-  <div class="tv-wrap">
-    <div class="tv">
-      <div class="hud">
-        <div class="title">SHAUNY // NEON WORLD</div>
-        <span class="chip">WALLFLOWER CIRCUIT</span>
-        <div class="spacer"></div>
-        <span class="chip">Score 3+ to unlock the EP</span>
+<div class="tv-wrap">
+  <div class="tv">
+    <div class="hud">
+      <div class="brand">SHAUNY // NEON WORLD</div>
+      <span class="chip">WALLFLOWER&nbsp;CIRCUIT</span>
+      <div class="spacer"></div>
+      <span class="chip">Score 3+ to unlock the EP</span>
+    </div>
+
+    <div class="screen">
+      <div class="stage">
+        <div class="card" id="card">
+          <button id="resetBtn" class="icon-btn" style="position:absolute;right:10px;top:10px">↻ Try Again</button>
+          <h1>Wallflower Circuit</h1>
+          <div id="question" aria-live="polite"></div>
+          <div id="answers"></div>
+          <div class="meta">
+            <div class="pill">Q <span id="qNum">1</span> / <span id="qTotal">0</span></div>
+            <div class="pill">Score: <span id="score">0</span></div>
+            <button id="openMap" class="icon-btn">🗺️ Map</button>
+            <button id="openStats" class="icon-btn">📊 Stats</button>
+          </div>
+          <div id="result" aria-live="polite"></div>
+        </div>
       </div>
 
-      <div class="screen">
-        <div class="game-wrap">
-          <div id="quiz-card">
-            <button class="actions" id="restartBtn" title="Try again" style="position:absolute;right:10px;top:10px">↻ Try Again</button>
-            <h1>Wallflower Circuit</h1>
-            <div id="q" aria-live="polite"></div>
-            <div id="opts"></div>
-            <div class="actions">
-              <button id="mapPeek">🗺️ Map</button>
-              <button id="statsPeek">📊 Stats</button>
-            </div>
-            <div id="result" aria-live="polite"></div>
+      <!-- Map modal -->
+      <div class="modal" id="mapModal" aria-modal="true" role="dialog">
+        <div class="panel">
+          <div class="head">
+            <h3>Neon World Map</h3><div class="spacer"></div>
+            <button id="closeMap" class="icon-btn">Close</button>
+          </div>
+          <div id="mapBox"></div>
+        </div>
+      </div>
+
+      <!-- Stats modal -->
+      <div class="modal" id="statsModal" aria-modal="true" role="dialog">
+        <div class="panel">
+          <div class="head">
+            <h3>Stats & Top Regions</h3><div class="spacer"></div>
+            <button id="closeStats" class="icon-btn">Close</button>
+          </div>
+          <div class="kpis" id="kpis"></div>
+          <div class="headrow"><div>Region</div><div>Plays</div><div>Monthly</div><div>Shazams</div></div>
+          <div class="table" id="rows"></div>
+          <div class="donut">
+            <div class="pie" id="pie"></div>
+            <div class="legend" id="legend"></div>
           </div>
         </div>
-        <div class="vignette"></div>
       </div>
 
-      <!-- MAP MODAL -->
-      <div class="modal
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===== DATA ===== */
+const COUNTRIES = [
+  { name:"United States", streams:30410, coords:[37.0902,-95.7129] },
+  { name:"Finland", streams:55130, coords:[64.0,26.0] },
+  { name:"India", streams:52048, coords:[22.9734,78.6569] },
+  { name:"Cambodia", streams:16128, coords:[12.5657,104.991] },
+  { name:"Indonesia", streams:13315, coords:[-2.5489,118.0149] },
+  { name:"Bangladesh", streams:12836, coords:[23.685,90.3563] },
+  { name:"Nepal", streams:11955, coords:[28.3949,84.124] },
+  { name:"Philippines", streams:11055, coords:[12.8797,121.774] },
+  { name:"United Kingdom", streams:7849, coords:[55.3781,-3.4360] },
+  { name:"Sri Lanka", streams:7162, coords:[7.8731,80.7718] }
+];
+const TOTALS = { plays: 209881 + 33499 + 198170, spins: 7000, shazams: 0 };
+
+/* ===== UTIL ===== */
+const $ = s => document.querySelector(s);
+const fmt = n => Number(n||0).toLocaleString();
+function hslFor(name){ let h=0; for(let i=0;i<name.length;i++) h=(h*31+name.charCodeAt(i))%360; return `hsl(${h} 100% 60%)`; }
+
+/* ===== QUIZ DATA (bio + stats-driven) ===== */
+const bioQs = [
+  {q:"What’s my favorite color?", o:["Pink","Blue","Gold","Green"], a:"Pink"},
+  {q:"What group was my dad in?", o:["The Golden Sons","The Temptations","The Clark Sisters","Take 6"], a:"The Golden Sons"},
+  {q:"Where am I from?", o:["Brooklyn & Harlem","Los Angeles","London","Atlanta"], a:"Brooklyn & Harlem"},
+  {q:"What was my YouTube alias?", o:["Origsupawoman","SuperShauny","PinkQueen","GoldenVoice"], a:"Origsupawoman"},
+  {q:"Where did I perform and almost place?", o:["Amateur Night at the Apollo","The Voice","Star Search","Showtime at the Apollo"], a:"Amateur Night at the Apollo"}
+];
+
+function statsQsFromData(){
+  const sorted=[...COUNTRIES].sort((a,b)=>b.streams-a.streams);
+  const top=sorted[0], second=sorted[1], third=sorted[2];
+  const totalStreams = sorted.reduce((s,d)=>s+d.streams,0)||1;
+  const shareTop = Math.round((top.streams/totalStreams)*100);
+
+  const names = sorted.slice(0,4).map(d=>d.name);
+  const wrongs1 = ["Brazil","Germany","Canada","Australia"].filter(x=>!names.includes(x));
+
+  return [
+    { q:"Which region currently has the MOST plays?",
+      o:[top.name, second.name, third.name, wrongs1[0]||"Brazil"], a: top.name },
+
+    { q:`About what share of all plays come from ${top.name}?`,
+      o:[`${shareTop}%`, `${Math.max(5,shareTop-10)}%`, `${Math.min(95,shareTop+10)}%`, `${Math.max(1,shareTop-20)}%`],
+      a:`${shareTop}%` },
+
+    { q:"How many regions are on the Neon Map?",
+      o:[String(COUNTRIES.length), String(COUNTRIES.length-2), String(COUNTRIES.length+2), "25"],
+      a:String(COUNTRIES.length) },
+
+    { q:"Roughly how many total plays (all platforms) are shown?",
+      o:[fmt(TOTALS.plays), fmt(TOTALS.plays-50000), fmt(TOTALS.plays+50000), fmt(100000)],
+      a:fmt(TOTALS.plays) }
+  ];
+}
+
+const quizData = [...bioQs, ...statsQsFromData()];
+
+/* ===== GAME ===== */
+const qEl=$("#question"), aEl=$("#answers"), resEl=$("#result");
+const qNumEl=$("#qNum"), qTotalEl=$("#qTotal"), scoreEl=$("#score");
+let qIdx=0, score=0, locked=false;
+
+qTotalEl.textContent = quizData.length;
+
+function renderQ(){
+  if(qIdx>=quizData.length){ return finish(); }
+  const q=quizData[qIdx];
+  qEl.textContent = q.q;
+  aEl.innerHTML='';
+  resEl.textContent='';
+  locked=false;
+  q.o.forEach(opt=>{
+    const b=document.createElement('button'); b.textContent=opt;
+    b.onclick=()=>check(opt);
+    aEl.appendChild(b);
+  });
+  qNumEl.textContent = qIdx+1;
+}
+function check(opt){
+  if(locked) return; locked=true;
+  const correct = (opt===quizData[qIdx].a);
+  if(correct) score++;
+  scoreEl.textContent = score;
+  resEl.textContent = correct ? "✓ Correct!" : "✗ Not quite";
+  setTimeout(()=>{ qIdx++; renderQ(); }, 300);
+}
+function finish(){
+  qEl.textContent="Quiz Complete!";
+  aEl.innerHTML='';
+  const passed = score >= 3;
+  resEl.innerHTML = `You got <b>${score}</b> / ${quizData.length}. ${passed ? "Nice!" : "Try again to unlock!"}`;
+  const el = passed ? Object.assign(document.createElement('a'),{href:'music',target:'_blank',textContent:'Unlock EP',className:'cta'})
+                    : Object.assign(document.createElement('button'),{textContent:'Try Again',className:'cta',onclick:reset});
+  aEl.appendChild(el);
+}
+function reset(){ qIdx=0; score=0; scoreEl.textContent=0; renderQ(); resEl.textContent=''; }
+$("#resetBtn").addEventListener('click', reset);
+
+/* ===== MAP MODAL ===== */
+let map, mapReady=false;
+$("#openMap").addEventListener('click', ()=>{
+  $("#mapModal").classList.add('open');
+  setTimeout(()=>{
+    if(!mapReady){ initMap(); mapReady=true; }
+    else { map.invalidateSize(); }
+  }, 30);
+});
+$("#closeMap").addEventListener('click', ()=> $("#mapModal").classList.remove('open'));
+
+function initMap(){
+  map=L.map('mapBox',{zoomControl:true,minZoom:2,maxZoom:6,worldCopyJump:true}).setView([20,10],2);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png',{attribution:'© OSM & Carto',maxZoom:6}).addTo(map);
+  const markers=[];
+  COUNTRIES.forEach(d=>{
+    const icon=L.divIcon({html:`<span class="neon-dot" style="--c:${hslFor(d.name)}"></span>`,className:'leaflet-div-icon',iconSize:[18,18],iconAnchor:[9,9]});
+    const m=L.marker(d.coords,{icon}).addTo(map).bindPopup(`<b>${d.name}</b><br/>${fmt(d.streams)} plays`);
+    markers.push(m);
+  });
+  if(markers.length){ const g=L.featureGroup(markers); map.fitBounds(g.getBounds(),{padding:[40,40]}); }
+}
+
+/* ===== STATS MODAL ===== */
+let statsBuilt=false;
+$("#openStats").addEventListener('click', ()=>{
+  $("#statsModal").classList.add('open');
+  if(!statsBuilt){ buildStats(); drawDonut(); statsBuilt=true; }
+});
+$("#closeStats").addEventListener('click', ()=> $("#statsModal").classList.remove('open'));
+
+function buildStats(){
+  const k = (lab,val)=>`<div class="kpi"><div class="lab">${lab}</div><div class="val">${fmt(val)}</div></div>`;
+  $("#kpis").innerHTML = k('Total Plays',TOTALS.plays) + k('Radio Spins',TOTALS.spins) + k('Regions',COUNTRIES.length) + k('YouTube Views',198170) + k('Spotify Plays',209881);
+
+  const top=[...COUNTRIES].sort((a,b)=>b.streams-a.streams).slice(0,10);
+  const max = Math.max(...top.map(d=>d.streams),1);
+  $("#rows").innerHTML = top.map(d=>{
+    const w=(d.streams/max)*100;
+    return `<div class="row">
+      <div class="cell">${d.name}</div>
+      <div class="cell bar"><div class="fill" style="--w:${w}%"><span>${fmt(d.streams)}</span></div></div>
+      <div class="cell">—</div><div class="cell">—</div>
+    </div>`;
+  }).join('');
+}
+
+function drawDonut(){
+  const sorted=[...COUNTRIES].sort((a,b)=>b.streams-a.streams);
+  const top3=sorted.slice(0,3), total=sorted.reduce((s,d)=>s+d.streams,0)||1;
+  let acc=0, stops=[];
+  top3.forEach(d=>{ const share=d.streams/total; const a0=acc*360, a1=(acc+=share)*360; stops.push(`${hslFor(d.name)} ${a0}deg ${a1}deg`); });
+  stops.push(`#2b2b40 ${acc*360}deg 360deg`);
+  $("#pie").style.background=`conic-gradient(${stops.join(',')})`;
+  $("#legend").innerHTML = top3.map(d=>{
+    const pct=((d.streams/total)*100).toFixed(1);
+    return `<div class="legend-item"><span class="swatch" style="background:${hslFor(d.name)}"></span><span>${d.name}</span><b>${pct}%</b></div>`;
+  }).join('') + `<div class="legend-item"><span class="swatch" style="background:#2b2b40"></span><span>Other</span><b>${((1-acc)*100).toFixed(1)}%</b></div>`;
+}
+
+/* ===== START ===== */
+renderQ();  // start immediately
+</script>
+</body>
+</html>
+
 
 
